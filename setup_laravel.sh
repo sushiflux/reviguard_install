@@ -14,6 +14,13 @@ DB_ROOT_PASS="rootpassword"
 APP_KEY="base64:$(openssl rand -base64 32)"
 
 # ----------------------------------------------------------------
+#  Aktuellen User ermitteln (für Datei-Ownership im Container)
+# ----------------------------------------------------------------
+HOST_UID=$(id -u)
+HOST_GID=$(id -g)
+HOST_USER=$(id -un)
+
+# ----------------------------------------------------------------
 #  Freien Port finden
 # ----------------------------------------------------------------
 port_in_use() {
@@ -37,6 +44,7 @@ echo ""
 echo "==> Projekt:    $PROJECT_NAME"
 echo "==> Datenbank:  $DB_NAME"
 echo "==> Ports:      Web=$WEB_PORT  MySQL=$DB_PORT  phpMyAdmin=$PHPMYADMIN_PORT"
+echo "==> User:       $HOST_USER (UID=$HOST_UID / GID=$HOST_GID)"
 echo ""
 
 # ----------------------------------------------------------------
@@ -74,7 +82,7 @@ EOF
 echo "✓ .env erstellt"
 
 # ----------------------------------------------------------------
-#  Dockerfile für PHP-FPM + Composer + Laravel-Extensions
+#  Dockerfile — PHP-FPM läuft als Host-User (keine Root-Konflikte)
 # ----------------------------------------------------------------
 cat > docker/php/Dockerfile << 'EOF'
 FROM php:8.2-fpm
@@ -107,9 +115,34 @@ RUN apt-get update && apt-get install -y \
 # Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
+# Host-User im Container anlegen (UID/GID kommen als Build-Args)
+ARG HOST_UID=1000
+ARG HOST_GID=1000
+RUN groupadd -g ${HOST_GID} appgroup 2>/dev/null || true \
+    && useradd -u ${HOST_UID} -g ${HOST_GID} -m -s /bin/bash appuser 2>/dev/null || true
+
+# Entrypoint
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR /var/www/html
+
+# PHP-FPM als Host-User starten
+USER appuser
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 EOF
 echo "✓ docker/php/Dockerfile erstellt"
+
+# ----------------------------------------------------------------
+#  Entrypoint — kein chown nötig, php-fpm läuft als Host-User
+# ----------------------------------------------------------------
+cat > docker/php/entrypoint.sh << 'EOF'
+#!/bin/sh
+exec php-fpm
+EOF
+chmod +x docker/php/entrypoint.sh
+echo "✓ docker/php/entrypoint.sh erstellt"
 
 # ----------------------------------------------------------------
 #  Nginx-Konfiguration (Document Root → public/)
@@ -155,7 +188,7 @@ EOF
 echo "✓ docker/mysql/init.sql erstellt"
 
 # ----------------------------------------------------------------
-#  docker-compose.yml
+#  docker-compose.yml — Build-Args mit Host-UID/GID übergeben
 # ----------------------------------------------------------------
 cat > docker-compose.yml << EOF
 version: '3.8'
@@ -166,6 +199,9 @@ services:
     build:
       context: ./docker/php
       dockerfile: Dockerfile
+      args:
+        HOST_UID: ${HOST_UID}
+        HOST_GID: ${HOST_GID}
     container_name: ${PROJECT_NAME}_php
     working_dir: /var/www/html
     volumes:
@@ -236,8 +272,15 @@ if [ ! -f .gitignore ]; then
 *.db
 node_modules/
 vendor/
-storage/
-bootstrap/cache/
+storage/*.key
+storage/app/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+!storage/**/.gitkeep
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
 public/hot
 public/storage
 EOF
@@ -268,8 +311,6 @@ echo "✓ MySQL bereit"
 
 # ----------------------------------------------------------------
 #  Laravel installieren (falls noch nicht vorhanden)
-#  Composer verlangt ein leeres Verzeichnis → temporären Pfad
-#  nutzen und dann in den Projektordner verschieben
 # ----------------------------------------------------------------
 if [ ! -f "artisan" ]; then
     echo ""
@@ -278,8 +319,6 @@ if [ ! -f "artisan" ]; then
 
     echo ""
     echo "==> Verschiebe Laravel-Dateien in den Projektordner..."
-    # Versteckte Dateien (.env.example, .gitignore usw.) einschließen;
-    # bereits vorhandene docker/-Dateien nicht überschreiben (cp -n)
     docker compose exec php bash -c "
         shopt -s dotglob
         cp -rn /tmp/laravel_install/* /var/www/html/
@@ -287,8 +326,7 @@ if [ ! -f "artisan" ]; then
     "
 
     echo ""
-    echo "==> Überschreibe Laravel .env mit Projekt-.env..."
-    # Unsere vorkonfigurierte .env hat bereits DB-Zugangsdaten und APP_KEY
+    echo "==> Setze APP_KEY..."
     docker compose exec php php artisan key:generate --force
 
     echo ""
@@ -300,6 +338,15 @@ else
     echo "==> Führe Migrationen aus..."
     docker compose exec php php artisan migrate --force
 fi
+
+# ----------------------------------------------------------------
+#  Ownership auf Host-User setzen
+# ----------------------------------------------------------------
+echo ""
+echo "==> Setze Datei-Ownership auf $HOST_USER (UID=$HOST_UID)..."
+chown -R "${HOST_UID}:${HOST_GID}" . 2>/dev/null || \
+    docker compose exec -u root php chown -R "${HOST_UID}:${HOST_GID}" /var/www/html
+echo "✓ Ownership gesetzt"
 
 echo ""
 echo "✓ Laravel-Setup abgeschlossen!"

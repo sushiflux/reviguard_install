@@ -6,6 +6,9 @@ services:
     build:
       context: ./docker/php
       dockerfile: Dockerfile
+      args:
+        HOST_UID: ${HOST_UID:-1000}
+        HOST_GID: ${HOST_GID:-1000}
     container_name: reviguard_php
     working_dir: /var/www/html
     volumes:
