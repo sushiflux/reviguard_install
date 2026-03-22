@@ -102,11 +102,11 @@
         }
         .sidebar-meta .meta-version {
             font-size: .65rem; font-weight: 700;
-            color: #334155; letter-spacing: .08em;
+            color: #94A3B8; letter-spacing: .08em;
             text-transform: uppercase; margin-bottom: .25rem;
         }
         .sidebar-meta .meta-copy {
-            font-size: .63rem; color: #2D3F52; line-height: 1.6;
+            font-size: .63rem; color: #64748B; line-height: 1.6;
         }
         .sidebar-meta .meta-heart { color: #F43F5E; }
 
