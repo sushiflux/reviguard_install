@@ -11,27 +11,31 @@ class RevisionController extends Controller
     public function create(Project $project)
     {
         if (!auth()->user()->canEditProject($project->id)) abort(403);
-        return view('projects.revisions.create', compact('project'));
+        $nextVersion = Revision::nextVersion($project->id);
+        return view('projects.revisions.create', compact('project', 'nextVersion'));
     }
 
     public function store(Request $request, Project $project)
     {
         if (!auth()->user()->canEditProject($project->id)) abort(403);
 
-        $data = $request->validate([
-            'title'   => ['required', 'string', 'max:200'],
-            'content' => ['required', 'string'],
-            'type'    => ['required', 'in:update,fix,change,release,hotfix'],
-            'version' => ['nullable', 'string', 'max:30'],
+        $request->validate([
+            'title'             => ['required', 'string', 'max:200'],
+            'entries'           => ['required', 'array', 'min:1'],
+            'entries.*.type'    => ['required', 'in:update,fix,change,release,hotfix'],
+            'entries.*.content' => ['required', 'string', 'max:5000'],
         ]);
+
+        $entries = array_values(array_filter($request->entries, fn($e) => !empty($e['content'])));
+        $types   = implode(',', array_unique(array_column($entries, 'type')));
 
         Revision::create([
             'project_id' => $project->id,
             'created_by' => auth()->id(),
-            'title'      => $data['title'],
-            'content'    => $data['content'],
-            'type'       => $data['type'],
-            'version'    => $data['version'] ?? null,
+            'title'      => $request->title,
+            'content'    => json_encode($entries),
+            'type'       => $types,
+            'version'    => Revision::nextVersion($project->id),
         ]);
 
         return redirect()->route('projects.show', $project)
@@ -42,7 +46,8 @@ class RevisionController extends Controller
     {
         if (!auth()->user()->canEditProject($project->id)) abort(403);
         if ($revision->project_id !== $project->id) abort(404);
-        return view('projects.revisions.replace', compact('project', 'revision'));
+        $nextVersion = Revision::nextVersion($project->id);
+        return view('projects.revisions.replace', compact('project', 'revision', 'nextVersion'));
     }
 
     public function storeReplace(Request $request, Project $project, Revision $revision)
@@ -50,24 +55,25 @@ class RevisionController extends Controller
         if (!auth()->user()->canEditProject($project->id)) abort(403);
         if ($revision->project_id !== $project->id) abort(404);
 
-        $data = $request->validate([
-            'title'   => ['required', 'string', 'max:200'],
-            'content' => ['required', 'string'],
-            'type'    => ['required', 'in:update,fix,change,release,hotfix'],
-            'version' => ['nullable', 'string', 'max:30'],
+        $request->validate([
+            'title'             => ['required', 'string', 'max:200'],
+            'entries'           => ['required', 'array', 'min:1'],
+            'entries.*.type'    => ['required', 'in:update,fix,change,release,hotfix'],
+            'entries.*.content' => ['required', 'string', 'max:5000'],
         ]);
 
-        // Create new revision
+        $entries = array_values(array_filter($request->entries, fn($e) => !empty($e['content'])));
+        $types   = implode(',', array_unique(array_column($entries, 'type')));
+
         $new = Revision::create([
             'project_id' => $project->id,
             'created_by' => auth()->id(),
-            'title'      => $data['title'],
-            'content'    => $data['content'],
-            'type'       => $data['type'],
-            'version'    => $data['version'] ?? null,
+            'title'      => $request->title,
+            'content'    => json_encode($entries),
+            'type'       => $types,
+            'version'    => Revision::nextVersion($project->id),
         ]);
 
-        // Mark old revision as replaced
         $revision->update([
             'replaced_by_revision_id' => $new->id,
             'replaced_by_user_id'     => auth()->id(),

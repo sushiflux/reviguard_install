@@ -67,29 +67,26 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($revisions as $revision)
                     @php
-                        $typeLabels = [
-                            'update'  => 'Aktualisierung',
-                            'fix'     => 'Fehlerbehebung',
-                            'change'  => 'Änderung',
-                            'release' => 'Release',
-                            'hotfix'  => 'Hotfix',
-                        ];
-                        $typeBadges = [
-                            'update'  => 'badge-blue',
-                            'fix'     => 'badge-red',
-                            'change'  => 'badge-amber',
-                            'release' => 'badge-green',
-                            'hotfix'  => 'badge-red',
-                        ];
-                        $typeLabel = $typeLabels[$revision->type] ?? $revision->type;
-                        $typeBadge = $typeBadges[$revision->type] ?? '';
+                    $typeConfig = [
+                        'update'  => ['label' => 'Aktualisierung', 'class' => 'badge-blue'],
+                        'change'  => ['label' => 'Änderung',       'class' => 'badge-amber'],
+                        'fix'     => ['label' => 'Fehlerbehebung', 'class' => 'badge-red'],
+                        'release' => ['label' => 'Release',        'class' => 'badge-green'],
+                        'hotfix'  => ['label' => 'Hotfix',         'class' => 'badge-red'],
+                    ];
                     @endphp
+                    @foreach($revisions as $revision)
                     <tr>
                         <td style="font-weight:600; color:#1E293B;">{{ $revision->title }}</td>
-                        <td><span class="badge {{ $typeBadge }}">{{ $typeLabel }}</span></td>
-                        <td style="color:#64748B; font-size:.82rem;">{{ $revision->version ?? '–' }}</td>
+                        <td style="white-space:nowrap;">
+                            @foreach($revision->typesList as $type)
+                                <span class="badge {{ $typeConfig[$type]['class'] ?? 'badge-gray' }}" style="margin-right:.2rem;">
+                                    {{ $typeConfig[$type]['label'] ?? $type }}
+                                </span>
+                            @endforeach
+                        </td>
+                        <td style="color:#64748B; font-size:.82rem;">{{ $revision->version ?: '–' }}</td>
                         <td style="color:#64748B; font-size:.82rem;">
                             @if($revision->author)
                                 {{ trim($revision->author->vorname . ' ' . $revision->author->nachname) }}
