@@ -283,7 +283,7 @@
             display: none;
             position: absolute;
             bottom: calc(100% + 6px);
-            left: 50%; transform: translateX(-50%);
+            left: 0; transform: none;
             background: #1E293B;
             color: #F1F5F9;
             font-size: .75rem; font-weight: 400;
@@ -298,7 +298,7 @@
         .role-tooltip::after {
             content: '';
             position: absolute;
-            top: 100%; left: 50%; transform: translateX(-50%);
+            top: 100%; left: .6rem;
             border: 5px solid transparent;
             border-top-color: #1E293B;
         }
