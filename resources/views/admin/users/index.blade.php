@@ -32,7 +32,16 @@
                 <td style="color:#64748B;">{{ $user->email }}</td>
                 <td>
                     @forelse($user->roles as $role)
-                        <span class="badge badge-blue" style="margin-right:.2rem;">{{ $role->display_name }}</span>
+                        @php
+                            $badgeClass = match($role->name) {
+                                'administrator'      => 'badge-blue',
+                                'projektleiter_admin'=> 'badge-amber',
+                                'developer'          => 'badge-cyan',
+                                'system_admin'       => 'badge-red',
+                                default              => 'badge-gray',
+                            };
+                        @endphp
+                        <span class="badge {{ $badgeClass }}" style="margin-right:.2rem;">{{ $role->display_name }}</span>
                     @empty
                         <span style="color:#CBD5E1; font-size:.8rem;">–</span>
                     @endforelse
