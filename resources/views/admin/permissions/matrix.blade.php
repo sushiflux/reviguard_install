@@ -277,7 +277,7 @@
 <script>
 const projectRoles = @json($projectRoles);
 const roleDescriptions = {
-    'projektleiter_admin': 'Zugriff auf alle Projekte',
+    'projektleiter_admin': 'Zugriff auf alle Projekte (global)',
     'projektleiter':       'Kann alle Revisionen im Projekt ersetzen',
     'editor':              'Kann eigene Revisionen hinzufügen und ersetzen',
     'viewer':              'Nur lesender Zugriff',
