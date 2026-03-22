@@ -68,10 +68,10 @@
             <div class="card-body">
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
-                    <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
 
                         {{-- Kacheln --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="dashboard_view" value="tile"
                                    {{ $user->dashboard_view === 'tile' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -105,7 +105,7 @@
                         </label>
 
                         {{-- Liste --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="dashboard_view" value="list"
                                    {{ $user->dashboard_view === 'list' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -150,10 +150,10 @@
 
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
-                    <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
 
                         {{-- Journal --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="revision_view" value="journal"
                                    {{ $user->revision_view === 'journal' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -178,7 +178,7 @@
                         </label>
 
                         {{-- Liste --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="revision_view" value="list"
                                    {{ $user->revision_view === 'list' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -216,10 +216,10 @@
 
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Vorgänger-Revisionen</label>
-                    <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
 
                         {{-- Eingeklappt --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="predecessors_expanded" value="0"
                                    {{ !$user->predecessors_expanded ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -248,7 +248,7 @@
                         </label>
 
                         {{-- Ausgeklappt --}}
-                        <label style="flex:1; cursor:pointer;">
+                        <label style="flex:0 0 170px; cursor:pointer;">
                             <input type="radio" name="predecessors_expanded" value="1"
                                    {{ $user->predecessors_expanded ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
@@ -563,18 +563,14 @@
 
 .pref-preview {
     width: 100%;
-    max-height: 72px;
     background: #fff;
     border: 1px solid #E2E8F0;
     border-radius: 6px;
     overflow: hidden;
-    margin-bottom: .1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    margin-bottom: .4rem;
 }
-.pref-preview svg { display: block; width: 100%; height: 72px; }
-.pref-active .pref-preview { border-color: rgba(6,182,212,.35); }
+.pref-preview svg { display: block; width: 100%; height: auto; }
+.pref-active .pref-preview { border-color: rgba(6,182,212,.4); }
 </style>
 
 @push('scripts')
