@@ -446,10 +446,6 @@
             @hasSection('breadcrumb') &rsaquo; @yield('breadcrumb') @endif
         </span>
 
-        <div class="topbar-user">
-            <div class="avatar">{{ strtoupper(substr(auth()->user()->vorname, 0, 1) . substr(auth()->user()->nachname ?? '', 0, 1)) }}</div>
-            <span class="uname">{{ auth()->user()->name }}</span>
-        </div>
     </div>
 
     <div class="content">
