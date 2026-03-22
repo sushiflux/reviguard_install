@@ -563,13 +563,17 @@
 
 .pref-preview {
     width: 100%;
+    max-height: 72px;
     background: #fff;
     border: 1px solid #E2E8F0;
     border-radius: 6px;
     overflow: hidden;
     margin-bottom: .1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
-.pref-preview svg { display: block; width: 100%; height: auto; }
+.pref-preview svg { display: block; width: 100%; height: 72px; }
 .pref-active .pref-preview { border-color: rgba(6,182,212,.35); }
 </style>
 
