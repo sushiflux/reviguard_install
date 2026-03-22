@@ -254,6 +254,57 @@
         .modal h3 { font-size: 1rem; font-weight: 700; margin-bottom: 1rem; }
         .modal-footer { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1.25rem; }
 
+        /* ── Rollen-Checkbox mit Tooltip ───────────────────────── */
+        .role-checkbox-label {
+            display: flex; align-items: center; gap: .4rem;
+            padding: .4rem .75rem;
+            border: 1px solid #E2E8F0; border-radius: 6px;
+            cursor: pointer; font-size: .83rem; font-weight: 500; color: #475569;
+            position: relative;
+        }
+
+        .role-info-wrap {
+            position: relative;
+            display: inline-flex; align-items: center;
+            margin-left: .1rem;
+        }
+
+        .role-info-icon {
+            width: 14px; height: 14px;
+            color: #94A3B8;
+            cursor: help;
+            transition: color .15s;
+            flex-shrink: 0;
+        }
+
+        .role-info-wrap:hover .role-info-icon { color: var(--c-accent1); }
+
+        .role-tooltip {
+            display: none;
+            position: absolute;
+            bottom: calc(100% + 6px);
+            left: 50%; transform: translateX(-50%);
+            background: #1E293B;
+            color: #F1F5F9;
+            font-size: .75rem; font-weight: 400;
+            padding: .4rem .7rem;
+            border-radius: 6px;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,.25);
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .role-tooltip::after {
+            content: '';
+            position: absolute;
+            top: 100%; left: 50%; transform: translateX(-50%);
+            border: 5px solid transparent;
+            border-top-color: #1E293B;
+        }
+
+        .role-info-wrap:hover .role-tooltip { display: block; }
+
         /* ── Responsive ─────────────────────────────────────────── */
         @media (max-width: 768px) {
             .sidebar { transform: translateX(-100%); }

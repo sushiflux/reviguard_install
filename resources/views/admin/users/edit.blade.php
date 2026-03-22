@@ -39,11 +39,17 @@
                     <label class="form-label">Rollen</label>
                     <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.25rem;">
                         @foreach($roles as $role)
-                        <label style="display:flex; align-items:center; gap:.4rem; padding:.4rem .75rem; border:1px solid #E2E8F0; border-radius:6px; cursor:pointer; font-size:.83rem; font-weight:500; color:#475569;">
+                        <label class="role-checkbox-label">
                             <input type="checkbox" name="roles[]" value="{{ $role->id }}"
                                 style="accent-color: var(--c-accent1);"
                                 {{ in_array($role->id, old('roles', $userRoles)) ? 'checked' : '' }}>
                             {{ $role->display_name }}
+                            @if($role->description)
+                            <span class="role-info-wrap">
+                                <svg class="role-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+                                <span class="role-tooltip">{{ $role->description }}</span>
+                            </span>
+                            @endif
                         </label>
                         @endforeach
                     </div>
