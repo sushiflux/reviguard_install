@@ -91,9 +91,24 @@
         /* ── Sidebar Footer ─────────────────────────────────── */
         .sidebar-footer {
             border-top: 1px solid var(--c-border);
-            padding: .75rem 0;
+            padding: .75rem 0 0;
             flex-shrink: 0;
         }
+
+        .sidebar-meta {
+            padding: .6rem 1.25rem .9rem;
+            border-top: 1px solid var(--c-border);
+            margin-top: .5rem;
+        }
+        .sidebar-meta .meta-version {
+            font-size: .65rem; font-weight: 700;
+            color: #334155; letter-spacing: .08em;
+            text-transform: uppercase; margin-bottom: .25rem;
+        }
+        .sidebar-meta .meta-copy {
+            font-size: .63rem; color: #2D3F52; line-height: 1.6;
+        }
+        .sidebar-meta .meta-heart { color: #F43F5E; }
 
         .sidebar-user {
             display: flex; align-items: center; gap: .6rem;
@@ -431,6 +446,14 @@
                 Abmelden
             </button>
         </form>
+    </div>
+
+    <div class="sidebar-meta">
+        <div class="meta-version">ReviGuard v{{ env('APP_VERSION', '0.1.0') }}</div>
+        <div class="meta-copy">
+            Made with <span class="meta-heart">♥</span> by Michel Matthes<br>
+            Powered by KI &nbsp;&middot;&nbsp; &copy; {{ date('Y') }}
+        </div>
     </div>
 
 </aside>
