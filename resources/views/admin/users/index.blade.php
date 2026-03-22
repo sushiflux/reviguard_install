@@ -38,7 +38,7 @@
                                 'projektleiter_admin'=> 'badge-amber',
                                 'developer'          => 'badge-cyan',
                                 'system_admin'       => 'badge-red',
-                                default              => 'badge-amber',
+                                default              => 'badge-green',
                             };
                         @endphp
                         <span class="badge {{ $badgeClass }}" style="margin-right:.2rem;">{{ $role->display_name }}</span>
