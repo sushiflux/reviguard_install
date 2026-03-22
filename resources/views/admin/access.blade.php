@@ -5,7 +5,7 @@
 
 @push('styles')
 <style>
-    /* ── Role badges (matrix) ── */
+    /* ── Role pills ── */
     .role-pill {
         display: inline-flex; align-items: center;
         padding: .2rem .6rem; border-radius: 999px;
@@ -18,75 +18,58 @@
     .role-editor              { background: rgba(234,179,8,.15);  color: #A16207; border-color: rgba(234,179,8,.3); }
     .role-viewer              { background: rgba(34,197,94,.15);  color: #15803D; border-color: rgba(34,197,94,.3); }
 
-    /* ── User list grid ── */
-    .mu-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
-        gap: .75rem;
-        padding: 1.25rem;
-    }
-    .mu-card {
+    /* ── Accordion list ── */
+    .acc-list { border-top: 1px solid #F1F5F9; }
+
+    .acc-header {
         display: flex; align-items: center; gap: .75rem;
-        padding: .875rem 1rem;
-        border: 1.5px solid #E2E8F0; border-radius: 10px;
-        cursor: pointer;
-        transition: border-color .15s, box-shadow .15s;
-    }
-    .mu-card:hover { border-color: var(--c-accent1); box-shadow: 0 2px 10px rgba(6,182,212,.12); }
-    .mu-info    { flex: 1; min-width: 0; }
-    .mu-name    { font-weight: 700; font-size: .9rem; color: #1E293B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mu-sub     { font-size: .75rem; color: var(--c-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .mu-avatar  {
-        width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
-        background: linear-gradient(135deg, var(--c-secondary), var(--c-accent1));
-        display: flex; align-items: center; justify-content: center;
-        font-size: .75rem; font-weight: 700; color: #fff;
-    }
-
-    /* ── User detail view ── */
-    .detail-header-avatar {
-        width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
-        background: linear-gradient(135deg, var(--c-secondary), var(--c-accent1));
-        display: flex; align-items: center; justify-content: center;
-        font-size: .9rem; font-weight: 700; color: #fff;
-    }
-    .detail-split    { display: flex; min-height: 420px; }
-    .detail-projects { flex: 0 0 340px; border-right: 1.5px solid #E2E8F0; overflow-y: auto; max-height: 560px; }
-    .detail-picker   { flex: 1; padding: 1.5rem; min-width: 0; display: flex; flex-direction: column; }
-
-    .detail-section-label {
-        padding: .75rem 1.25rem;
-        font-size: .68rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-        color: var(--c-muted); background: #F8FAFC;
-        border-bottom: 1px solid #E2E8F0;
-        position: sticky; top: 0; z-index: 1;
-    }
-
-    .proj-row {
-        display: flex; align-items: center; gap: .6rem;
-        padding: .75rem 1.25rem;
-        border-bottom: 1px solid #F1F5F9;
-        cursor: pointer;
+        padding: .875rem 1.25rem; cursor: pointer;
         transition: background .12s;
+        border-bottom: 1px solid #F1F5F9;
     }
-    .proj-row:hover { background: #F8FAFC; }
-    .proj-row.selected {
-        background: rgba(6,182,212,.06);
-        border-left: 3px solid var(--c-accent1);
-        padding-left: calc(1.25rem - 3px);
-    }
-    .proj-row-name {
-        flex: 1; font-size: .875rem; font-weight: 500; color: #334155;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    }
+    .acc-header:hover   { background: #F8FAFC; }
+    .acc-header.is-open { background: #F1F5F9; border-bottom-color: #E2E8F0; }
 
-    /* ── Role picker ── */
-    .picker-empty {
-        flex: 1; display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        color: #94A3B8; font-size: .875rem; font-weight: 500;
-        gap: .5rem; text-align: center; padding: 2rem;
+    .acc-avatar {
+        width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, var(--c-secondary), var(--c-accent1));
+        display: flex; align-items: center; justify-content: center;
+        font-size: .72rem; font-weight: 700; color: #fff;
     }
+    .acc-uname     { font-weight: 700; font-size: .9rem; color: #1E293B; }
+    .acc-usub      { font-size: .75rem; color: var(--c-muted); margin-top: .05rem; }
+    .acc-info      { flex: 1; min-width: 0; }
+    .acc-count     { font-size: .75rem; color: var(--c-muted); white-space: nowrap; }
+    .acc-chevron   { flex-shrink: 0; color: #CBD5E1; transition: transform .2s; }
+    .acc-header.is-open .acc-chevron { transform: rotate(90deg); color: var(--c-accent1); }
+
+    /* ── Accordion body ── */
+    .acc-body {
+        display: none;
+        background: #FAFCFF;
+        border-bottom: 1px solid #E2E8F0;
+    }
+    .acc-body.is-open { display: block; }
+
+    .acc-body-inner { padding: .75rem 1.25rem .75rem 4rem; }
+
+    /* ── Project assignment rows ── */
+    .proj-assign-row {
+        display: flex; align-items: center; gap: .75rem;
+        padding: .5rem 0;
+        border-bottom: 1px solid #F1F5F9;
+    }
+    .proj-assign-row:last-child { border-bottom: none; }
+    .proj-assign-name {
+        flex: 1; font-size: .875rem; color: #334155;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        display: flex; align-items: center; gap: .5rem;
+    }
+    .proj-assign-name svg { flex-shrink: 0; }
+    .proj-assign-role { min-width: 110px; text-align: right; }
+    .proj-none { font-size: .78rem; color: #CBD5E1; }
+
+    /* ── Role modal options ── */
     .role-option {
         display: flex; align-items: center;
         padding: .65rem .875rem; border-radius: 8px;
@@ -96,9 +79,9 @@
     }
     .role-option:hover    { border-color: var(--c-accent1); background: rgba(6,182,212,.04); }
     .role-option.selected { border-color: var(--c-accent1); background: rgba(6,182,212,.08); }
-    .role-option .role-name { font-weight: 600; font-size: .875rem; color: #1E293B; }
-    .role-option .role-desc { font-size: .75rem; color: var(--c-muted); margin-top: .1rem; }
-    .role-option .role-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .role-option .ro-name { font-weight: 600; font-size: .875rem; color: #1E293B; }
+    .role-option .ro-desc { font-size: .75rem; color: var(--c-muted); margin-top: .1rem; }
+    .role-option .ro-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 </style>
 @endpush
 
@@ -235,128 +218,103 @@
 ═════════════════════════════════════════════════════ --}}
 <div id="tab-matrix" class="tab-panel {{ $activeTab !== 'matrix' ? 'tab-hidden' : '' }}">
 
-    {{-- ── View 1: User List ── --}}
-    <div id="matrix-user-list">
-        <div class="card">
-            <div class="card-header">
-                <h2>Benutzer</h2>
-                <span style="font-size:.78rem; color:var(--c-muted);">Benutzer auswählen um Projektrollen zu verwalten</span>
-            </div>
-            @if($users->isEmpty())
-                <div style="padding:3rem; text-align:center; color:#94A3B8;">Keine Benutzer vorhanden.</div>
-            @else
-            <div class="mu-grid">
-                @foreach($users as $u)
-                @php $assignedCount = count($matrix[$u->id] ?? []); @endphp
-                <div class="mu-card" onclick="selectMatrixUser({{ $u->id }})">
-                    <div class="mu-avatar">{{ strtoupper(substr($u->username, 0, 2)) }}</div>
-                    <div class="mu-info">
-                        <div class="mu-name">{{ $u->username }}</div>
-                        <div class="mu-sub">{{ $u->name }}</div>
-                    </div>
-                    @if($assignedCount > 0)
-                        <span class="badge badge-cyan">{{ $assignedCount }} {{ $assignedCount === 1 ? 'Projekt' : 'Projekte' }}</span>
-                    @else
-                        <span style="font-size:.72rem; color:#CBD5E1;">Keine</span>
-                    @endif
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" style="flex-shrink:0;">
-                        <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                </div>
-                @endforeach
-            </div>
-            @endif
+    <div class="card">
+        <div class="card-header">
+            <h2>Berechtigungsmatrix</h2>
+            <span style="font-size:.78rem; color:var(--c-muted);">
+                {{ $users->count() }} Benutzer &middot; {{ $projects->count() }} Projekte
+            </span>
         </div>
-    </div>
 
-    {{-- ── View 2: User Detail ── --}}
-    <div id="matrix-detail" style="display:none;">
+        @if($users->isEmpty())
+            <div style="padding:3rem; text-align:center; color:#94A3B8;">Keine Benutzer vorhanden.</div>
+        @else
 
-        <div style="margin-bottom:1rem;">
-            <button class="btn btn-ghost btn-sm" onclick="backToUserList()">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="15 18 9 12 15 6"/>
+        <div class="acc-list">
+            @foreach($users as $u)
+            @php $assignedCount = count($matrix[$u->id] ?? []); @endphp
+
+            {{-- Accordion header --}}
+            <div class="acc-header" id="acc-hdr-{{ $u->id }}" onclick="toggleAcc({{ $u->id }})">
+                <div class="acc-avatar">{{ strtoupper(substr($u->username, 0, 2)) }}</div>
+                <div class="acc-info">
+                    <div class="acc-uname">{{ $u->username }}</div>
+                    <div class="acc-usub">{{ $u->name }}</div>
+                </div>
+                @if($u->roles->isNotEmpty())
+                    <div style="display:flex; gap:.25rem; flex-wrap:wrap; justify-content:flex-end; max-width:220px;">
+                        @foreach($u->roles as $gr)
+                            <span class="badge badge-blue" style="font-size:.68rem;">{{ $gr->display_name }}</span>
+                        @endforeach
+                    </div>
+                @endif
+                <span class="acc-count">
+                    {{ $assignedCount }}&thinsp;/&thinsp;{{ $projects->count() }} Projekte
+                </span>
+                <svg class="acc-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="9 18 15 12 9 6"/>
                 </svg>
-                Alle Benutzer
-            </button>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <div style="display:flex; align-items:center; gap:.875rem;">
-                    <div class="detail-header-avatar" id="detail-avatar"></div>
-                    <div>
-                        <div style="font-weight:700; font-size:1rem; color:#1E293B;" id="detail-username"></div>
-                        <div style="font-size:.78rem; color:var(--c-muted); margin-top:.15rem;" id="detail-userroles"></div>
-                    </div>
-                </div>
             </div>
 
-            @if($projects->isEmpty())
-                <div style="padding:3rem; text-align:center; color:#94A3B8;">
-                    <div style="font-weight:600; color:#64748B; margin-bottom:.4rem;">Keine Projekte vorhanden</div>
-                    <div style="font-size:.82rem;">Erstelle zuerst Projekte um Rollen zu vergeben.</div>
-                </div>
-            @else
-            <div class="detail-split">
-
-                {{-- Left: Project list --}}
-                <div class="detail-projects">
-                    <div class="detail-section-label">Projekt auswählen</div>
+            {{-- Accordion body --}}
+            <div class="acc-body" id="acc-body-{{ $u->id }}">
+                <div class="acc-body-inner">
+                    @if($projects->isEmpty())
+                        <div style="padding:.5rem 0; color:#94A3B8; font-size:.85rem;">Keine Projekte vorhanden.</div>
+                    @else
                     @foreach($projects as $proj)
-                    <div class="proj-row" id="prow-{{ $proj->id }}"
-                         onclick="selectProject({{ $proj->id }}, '{{ addslashes($proj->name) }}')">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5" style="flex-shrink:0;">
-                            <rect x="2" y="7" width="20" height="14" rx="2"/>
-                            <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                        </svg>
-                        <span class="proj-row-name">{{ $proj->name }}</span>
-                        <div id="prole-{{ $proj->id }}" style="flex-shrink:0;"></div>
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" style="flex-shrink:0; margin-left:auto;">
-                            <polyline points="9 18 15 12 9 6"/>
-                        </svg>
+                    @php $role = $matrix[$u->id][$proj->id] ?? null; @endphp
+                    <div class="proj-assign-row">
+                        <span class="proj-assign-name">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="1.5">
+                                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                            </svg>
+                            {{ $proj->name }}
+                        </span>
+                        <div class="proj-assign-role">
+                            @if($role)
+                                <span class="role-pill role-{{ $role->name }}">{{ $role->display_name }}</span>
+                            @else
+                                <span class="proj-none">Keine</span>
+                            @endif
+                        </div>
+                        @if($role)
+                            <button class="btn btn-ghost btn-sm"
+                                onclick="openRoleModal({{ $u->id }}, '{{ addslashes($u->username) }}', {{ $proj->id }}, '{{ addslashes($proj->name) }}', {{ $role->id }})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                                </svg>
+                                Ändern
+                            </button>
+                        @else
+                            <button class="btn btn-ghost btn-sm"
+                                onclick="openRoleModal({{ $u->id }}, '{{ addslashes($u->username) }}', {{ $proj->id }}, '{{ addslashes($proj->name) }}', null)">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13">
+                                    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                                </svg>
+                                Vergeben
+                            </button>
+                        @endif
                     </div>
                     @endforeach
+                    @endif
                 </div>
-
-                {{-- Right: Role picker --}}
-                <div class="detail-picker">
-                    <div id="picker-empty" class="picker-empty">
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.2">
-                            <path d="M9 11l3 3L22 4"/>
-                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                        </svg>
-                        <div style="font-weight:600; color:#64748B;">Projekt auswählen</div>
-                        <div style="font-size:.8rem;">Klicke links auf ein Projekt um eine Rolle zu vergeben</div>
-                    </div>
-
-                    <div id="picker-content" style="display:none;">
-                        <div style="font-size:.7rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--c-muted); margin-bottom:1rem;" id="picker-title"></div>
-                        <div id="picker-roles"></div>
-                        <div id="picker-revoke" style="display:none; margin-top:.625rem;">
-                            <button class="btn btn-danger btn-sm" onclick="revokeProjectRole()" style="width:100%;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
-                                    <polyline points="3 6 5 6 21 6"/>
-                                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                                </svg>
-                                Berechtigung entfernen
-                            </button>
-                        </div>
-                        <div style="margin-top:1rem;">
-                            <button class="btn btn-primary" onclick="saveProjectRole()" style="width:100%;">Speichern</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
-            @endif
+
+            @endforeach
         </div>
+
+        @endif
     </div>
 
 </div>{{-- /tab-matrix --}}
 
 
 {{-- ── Modals ── --}}
+
+{{-- Password Reset --}}
 <div class="modal-backdrop" id="userResetModal">
     <div class="modal">
         <h3>Passwort zurücksetzen</h3>
@@ -378,6 +336,29 @@
                 <button type="submit" class="btn btn-primary">Zurücksetzen</button>
             </div>
         </form>
+    </div>
+</div>
+
+{{-- Role Assignment --}}
+<div class="modal-backdrop" id="roleModal">
+    <div class="modal" style="width:460px;">
+        <h3 id="roleModalTitle">Berechtigung vergeben</h3>
+        <p id="roleModalSubtitle" style="font-size:.83rem; color:#64748B; margin-bottom:1.25rem;"></p>
+        <div id="roleModalOptions"></div>
+        <div id="roleModalRevoke" style="display:none; margin-bottom:.75rem;">
+            <button class="btn btn-danger btn-sm" onclick="revokeRole()" style="width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                    <path d="M10 11v6M14 11v6"/>
+                </svg>
+                Berechtigung entfernen
+            </button>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-ghost" onclick="closeRoleModal()">Abbrechen</button>
+            <button class="btn btn-primary" onclick="saveRole()">Speichern</button>
+        </div>
     </div>
 </div>
 
@@ -415,6 +396,22 @@ function switchTab(name) {
     history.replaceState(null, '', url);
 }
 
+// ── Accordion ─────────────────────────────────────────────
+function toggleAcc(userId) {
+    const hdr  = document.getElementById('acc-hdr-'  + userId);
+    const body = document.getElementById('acc-body-' + userId);
+    const isOpen = body.classList.contains('is-open');
+
+    // Close all
+    document.querySelectorAll('.acc-body').forEach(b => b.classList.remove('is-open'));
+    document.querySelectorAll('.acc-header').forEach(h => h.classList.remove('is-open'));
+
+    if (!isOpen) {
+        body.classList.add('is-open');
+        hdr.classList.add('is-open');
+    }
+}
+
 // ── User Password Reset Modal ──────────────────────────────
 function openUserResetModal(userId, username) {
     document.getElementById('userModalUsername').textContent = username;
@@ -428,23 +425,8 @@ document.getElementById('userResetModal').addEventListener('click', function(e) 
     if (e.target === this) closeUserResetModal();
 });
 
-// ── Matrix Data ────────────────────────────────────────────
-@php
-    $usersJson    = $users->map(fn($u) => ['id' => $u->id, 'username' => $u->username, 'name' => $u->name, 'roles' => $u->roles->pluck('display_name')->values()]);
-    $projectsJson = $projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name]);
-@endphp
-const matrixData      = @json($matrix);
-const allProjectRoles = @json($projectRoles);
-const allProjects     = @json($projectsJson);
-const allUsersData    = @json($usersJson);
-
-const roleColors = {
-    'projektleiter_admin': { bg: 'rgba(245,158,11,.15)',  color: '#B45309', border: 'rgba(245,158,11,.3)' },
-    'projektleiter':       { bg: 'rgba(30,64,175,.12)',   color: '#1D4ED8', border: 'rgba(30,64,175,.2)'  },
-    'developer':           { bg: 'rgba(139,92,246,.12)',  color: '#6D28D9', border: 'rgba(139,92,246,.2)' },
-    'editor':              { bg: 'rgba(234,179,8,.15)',   color: '#A16207', border: 'rgba(234,179,8,.3)'  },
-    'viewer':              { bg: 'rgba(34,197,94,.15)',   color: '#15803D', border: 'rgba(34,197,94,.3)'  },
-};
+// ── Role Assignment Modal ──────────────────────────────────
+const projectRoles = @json($projectRoles);
 const roleDotColors = {
     'projektleiter_admin': '#F59E0B',
     'projektleiter':       '#1E40AF',
@@ -460,119 +442,61 @@ const roleDescriptions = {
     'viewer':              'Nur lesender Zugriff',
 };
 
-let currentUserId    = null;
-let currentProjectId = null;
-let selectedRoleId   = null;
-let currentUserMatrix = {};
+let roleState = { userId: null, projectId: null, selectedRoleId: null, currentRoleId: null };
 
-function rolePillHtml(role) {
-    const c = roleColors[role.name] || { bg: 'rgba(100,116,139,.1)', color: '#475569', border: 'rgba(100,116,139,.2)' };
-    return `<span class="role-pill" style="background:${c.bg};color:${c.color};border-color:${c.border};">${role.display_name}</span>`;
-}
+function openRoleModal(userId, username, projectId, projectName, currentRoleId) {
+    roleState = { userId, projectId, selectedRoleId: currentRoleId, currentRoleId };
+    document.getElementById('roleModalTitle').textContent    = currentRoleId ? 'Berechtigung ändern' : 'Berechtigung vergeben';
+    document.getElementById('roleModalSubtitle').textContent = username + '  →  ' + projectName;
+    document.getElementById('roleModalRevoke').style.display = currentRoleId ? 'block' : 'none';
 
-// ── View switching ─────────────────────────────────────────
-function selectMatrixUser(userId) {
-    currentUserId     = userId;
-    currentProjectId  = null;
-    selectedRoleId    = null;
-    currentUserMatrix = matrixData[userId] || {};
-
-    const user = allUsersData.find(u => u.id === userId);
-    document.getElementById('detail-avatar').textContent   = user.username.substring(0, 2).toUpperCase();
-    document.getElementById('detail-username').textContent = user.username + '  ·  ' + user.name;
-    document.getElementById('detail-userroles').textContent =
-        user.roles.length ? user.roles.join(', ') : 'Keine globalen Rollen';
-
-    // Populate project role badges & reset selection
-    allProjects.forEach(p => {
-        const roleEl = document.getElementById('prole-' + p.id);
-        if (roleEl) {
-            const r = currentUserMatrix[p.id];
-            roleEl.innerHTML = r ? rolePillHtml(r) : '';
-        }
-        const rowEl = document.getElementById('prow-' + p.id);
-        if (rowEl) rowEl.classList.remove('selected');
-    });
-
-    // Reset picker to empty state
-    document.getElementById('picker-empty').style.display   = 'flex';
-    document.getElementById('picker-content').style.display = 'none';
-
-    document.getElementById('matrix-user-list').style.display = 'none';
-    document.getElementById('matrix-detail').style.display    = 'block';
-}
-
-function backToUserList() {
-    currentUserId    = null;
-    currentProjectId = null;
-    selectedRoleId   = null;
-    document.getElementById('matrix-detail').style.display    = 'none';
-    document.getElementById('matrix-user-list').style.display = 'block';
-}
-
-// ── Project selection (right-side role picker) ─────────────
-function selectProject(projectId, projectName) {
-    currentProjectId = projectId;
-
-    // Highlight selected project row
-    allProjects.forEach(p => {
-        const row = document.getElementById('prow-' + p.id);
-        if (row) row.classList.toggle('selected', p.id === projectId);
-    });
-
-    const currentRole = currentUserMatrix[projectId] || null;
-    selectedRoleId    = currentRole ? currentRole.id : null;
-
-    // Build role options
-    const container = document.getElementById('picker-roles');
+    const container = document.getElementById('roleModalOptions');
     container.innerHTML = '';
-    allProjectRoles.forEach(role => {
-        const isSelected = currentRole && currentRole.id === role.id;
-        const dotColor   = roleDotColors[role.name] || '#94A3B8';
+    projectRoles.forEach(role => {
         const div = document.createElement('div');
-        div.className   = 'role-option' + (isSelected ? ' selected' : '');
+        div.className = 'role-option' + (role.id === currentRoleId ? ' selected' : '');
         div.dataset.rid = role.id;
-        div.innerHTML   = `
-            <div class="role-dot" style="background:${dotColor};"></div>
+        div.innerHTML = `
+            <div class="ro-dot" style="background:${roleDotColors[role.name] || '#94A3B8'};"></div>
             <div>
-                <div class="role-name">${role.display_name}</div>
-                <div class="role-desc">${roleDescriptions[role.name] || ''}</div>
+                <div class="ro-name">${role.display_name}</div>
+                <div class="ro-desc">${roleDescriptions[role.name] || ''}</div>
             </div>`;
         div.addEventListener('click', () => {
-            selectedRoleId = role.id;
-            document.querySelectorAll('#picker-roles .role-option').forEach(o => o.classList.remove('selected'));
+            roleState.selectedRoleId = role.id;
+            container.querySelectorAll('.role-option').forEach(o => o.classList.remove('selected'));
             div.classList.add('selected');
         });
         container.appendChild(div);
     });
 
-    // Revoke button
-    document.getElementById('picker-revoke').style.display = currentRole ? 'block' : 'none';
-
-    document.getElementById('picker-title').textContent    = projectName;
-    document.getElementById('picker-empty').style.display   = 'none';
-    document.getElementById('picker-content').style.display = 'block';
+    document.getElementById('roleModal').classList.add('open');
 }
+function closeRoleModal() {
+    document.getElementById('roleModal').classList.remove('open');
+}
+document.getElementById('roleModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRoleModal();
+});
 
-// ── Save / Revoke ──────────────────────────────────────────
-async function saveProjectRole() {
-    if (!selectedRoleId || !currentProjectId || !currentUserId) return;
+async function saveRole() {
+    if (!roleState.selectedRoleId) return;
     const res = await fetch('{{ route("admin.permissions.assign") }}', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-        body: JSON.stringify({ user_id: currentUserId, project_id: currentProjectId, role_id: selectedRoleId }),
+        body: JSON.stringify({ user_id: roleState.userId, project_id: roleState.projectId, role_id: roleState.selectedRoleId }),
     });
-    if (res.ok) window.location.reload();
+    if (res.ok) { closeRoleModal(); window.location.reload(); }
 }
 
-async function revokeProjectRole() {
+async function revokeRole() {
     if (!confirm('Berechtigung wirklich entfernen?')) return;
     const res = await fetch('{{ route("admin.permissions.revoke") }}', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-        body: JSON.stringify({ user_id: currentUserId, project_id: currentProjectId }),
+        body: JSON.stringify({ user_id: roleState.userId, project_id: roleState.projectId }),
     });
-    if (res.ok) window.location.reload();
+    if (res.ok) { closeRoleModal(); window.location.reload(); }
 }
 </script>
 @endpush
