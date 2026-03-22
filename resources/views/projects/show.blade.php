@@ -82,7 +82,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
              style="position:absolute; left:.7rem; top:50%; transform:translateY(-50%); pointer-events:none;">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input id="rev-search" type="search" placeholder="Suche… mehrere Begriffe mit Leerzeichen, * als Platzhalter"
+        <input id="rev-search" type="search" placeholder="Suche… oder *fix *neu *hotfix für ODER-Verknüpfung"
                style="width:100%; padding:.5rem .75rem .5rem 2.1rem; border:1px solid #E2E8F0; border-radius:7px;
                       font-size:.85rem; color:#1E293B; outline:none; box-sizing:border-box;"
                onfocus="this.style.borderColor='var(--c-accent1)'"
@@ -594,18 +594,11 @@ function applyFilter() {
     updateListFirstBadge();
 }
 
-function termToRegex(term) {
-    // Escape regex special chars except *, then convert * to .*
-    const escaped = term.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(escaped.replace(/\*/g, '.*'));
-}
-
 function matchItem(item, q) {
     // Multi-type: item must have at least one of the selected types
     const matchType = activeTypes.size === 0 ||
         item.dataset.types.split(' ').some(t => activeTypes.has(t));
 
-    // Search: space-separated terms, all must match (AND); * = wildcard
     let matchSearch = true;
     if (q) {
         const fields = [
@@ -616,8 +609,16 @@ function matchItem(item, q) {
             item.dataset.date,
             item.dataset.content,
         ].join(' ');
-        const terms = q.trim().split(/\s+/).filter(Boolean);
-        matchSearch = terms.every(term => termToRegex(term).test(fields));
+
+        if (q.includes('*')) {
+            // * as prefix/separator → OR logic: show item if ANY term matches
+            const terms = q.split('*').map(t => t.trim()).filter(Boolean);
+            matchSearch = terms.some(term => fields.includes(term));
+        } else {
+            // Normal: space-separated terms, ALL must match (AND)
+            const terms = q.trim().split(/\s+/).filter(Boolean);
+            matchSearch = terms.every(term => fields.includes(term));
+        }
     }
 
     return matchType && matchSearch;
