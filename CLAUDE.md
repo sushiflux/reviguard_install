@@ -85,6 +85,11 @@ The `2fa/challenge.blade.php` is a standalone page (does **not** extend `layouts
 
 **Dynamic timeline (projects/show.blade.php):** Do NOT use Blade `$loop->first/$loop->last` for visual styling in the journal view. JS owns all timeline visual state and recalculates after every filter operation (`updateJournalTimeline()`). Predecessor `<tr>` rows must use `display:table-row` (not `display:block`) to preserve colspan behavior.
 
+**Revision search & filter (`projects/show.blade.php`):**
+- Type filter buttons are multi-select (JS `Set`); a revision matches if it has **any** of the selected types (OR). "Alle" clears the set.
+- Search field: if the query contains `*`, it is split by `*` into OR-terms (e.g. `*fix *neu` shows items matching "fix" **or** "neu"). Without `*`, space-separated terms are ANDed.
+- `data-version` stores the version number without the "v" prefix (e.g. `1.3`). The search fields include both `1.3` and `v1.3` so users can search either way.
+
 ### Tab-based Admin & Profile Pages
 Several pages use a URL-param tab system (`?tab=<name>`). JS reads `request('tab', '<default>')` in Blade and `history.replaceState` keeps the tab on form submits. Old dedicated routes redirect to the combined page:
 
