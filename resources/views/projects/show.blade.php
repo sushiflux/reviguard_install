@@ -8,14 +8,18 @@
 
 @section('content')
 
-@if(session('success'))
-<div style="background:#ECFDF5; border:1px solid #6EE7B7; border-radius:8px; padding:.85rem 1.25rem; margin-bottom:1.25rem; color:#065F46; font-size:.875rem; display:flex; align-items:center; gap:.6rem;">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-    {{ session('success') }}
-</div>
-@endif
+@php
+$typeConfig = [
+    'update'  => ['label' => 'Aktualisierung', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
+    'change'  => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
+    'fix'     => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
+    'release' => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],
+    'hotfix'  => ['label' => 'Hotfix',         'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
+];
+@endphp
 
-<div class="card">
+{{-- Projekt-Header --}}
+<div class="card" style="margin-bottom:1.5rem;">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:.75rem;">
             <h2 style="font-size:1.05rem; font-weight:700; color:#1E293B;">{{ $project->name }}</h2>
@@ -34,81 +38,119 @@
             </a>
         @endif
     </div>
-
     @if($project->description)
-    <div style="padding:.85rem 1.5rem; border-bottom:1px solid #E2E8F0; font-size:.875rem; color:#64748B; line-height:1.6;">
+    <div style="padding:.85rem 1.5rem; font-size:.875rem; color:#64748B; line-height:1.6;">
         {{ $project->description }}
     </div>
     @endif
-
-    <div class="card-body" style="padding:0;">
-        @if($revisions->isEmpty())
-            <div style="text-align:center; padding:4rem; color:#94A3B8;">
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin-bottom:1rem;">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
-                </svg>
-                <div style="font-weight:600; color:#64748B;">Noch keine Revisionen vorhanden</div>
-                @if($canEdit)
-                    <div style="font-size:.82rem; margin-top:.5rem;">
-                        <a href="{{ route('revisions.create', $project) }}" style="color:var(--c-accent1);">Erste Revision anlegen</a>
-                    </div>
-                @endif
-            </div>
-        @else
-            <table class="tbl">
-                <thead>
-                    <tr>
-                        <th>Titel</th>
-                        <th>Typ</th>
-                        <th>Version</th>
-                        <th>Autor</th>
-                        <th>Datum</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @php
-                    $typeConfig = [
-                        'update'  => ['label' => 'Aktualisierung', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
-                        'change'  => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
-                        'fix'     => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
-                        'release' => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],
-                        'hotfix'  => ['label' => 'Hotfix',         'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
-                    ];
-                    @endphp
-                    @foreach($revisions as $revision)
-                    <tr>
-                        <td style="font-weight:600; color:#1E293B;">{{ $revision->title }}</td>
-                        <td style="white-space:nowrap;">
-                            @foreach($revision->typesList as $type)
-                                @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                                <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
-                                             font-size:.72rem; font-weight:600; margin-right:.25rem;
-                                             background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
-                                    {{ $tc['label'] }}
-                                </span>
-                            @endforeach
-                        </td>
-                        <td style="color:#64748B; font-size:.82rem;">{{ $revision->version ?: '–' }}</td>
-                        <td style="color:#64748B; font-size:.82rem;">
-                            @if($revision->author)
-                                {{ trim($revision->author->vorname . ' ' . $revision->author->nachname) }}
-                            @else
-                                –
-                            @endif
-                        </td>
-                        <td style="color:#94A3B8; font-size:.82rem; white-space:nowrap;">{{ $revision->created_at->format('d.m.Y H:i') }}</td>
-                        <td style="text-align:right; white-space:nowrap;">
-                            @if($canEdit)
-                                <a href="{{ route('revisions.replace', [$project, $revision]) }}" class="btn btn-ghost btn-sm">Ersetzen</a>
-                            @endif
-                        </td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        @endif
-    </div>
 </div>
+
+@if(session('success'))
+<div style="background:#ECFDF5; border:1px solid #6EE7B7; border-radius:8px; padding:.85rem 1.25rem; margin-bottom:1.25rem; color:#065F46; font-size:.875rem; display:flex; align-items:center; gap:.6rem;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    {{ session('success') }}
+</div>
+@endif
+
+{{-- Journal --}}
+@if($revisions->isEmpty())
+    <div class="card">
+        <div style="text-align:center; padding:4rem; color:#94A3B8;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin-bottom:1rem;">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+            </svg>
+            <div style="font-weight:600; color:#64748B;">Noch keine Revisionen vorhanden</div>
+            @if($canEdit)
+                <div style="font-size:.82rem; margin-top:.5rem;">
+                    <a href="{{ route('revisions.create', $project) }}" style="color:var(--c-accent1);">Erste Revision anlegen</a>
+                </div>
+            @endif
+        </div>
+    </div>
+@else
+    <div style="position:relative; padding-left:2.5rem;">
+
+        {{-- Vertikale Timeline-Linie --}}
+        <div style="position:absolute; left:.9rem; top:.5rem; bottom:.5rem; width:2px;
+                    background:linear-gradient(to bottom, var(--c-accent1), #E2E8F0);
+                    border-radius:2px;"></div>
+
+        @foreach($revisions as $revision)
+        <div style="position:relative; margin-bottom:1.5rem;">
+
+            {{-- Dot auf der Linie --}}
+            <div style="position:absolute; left:-1.67rem; top:1.1rem;
+                        width:12px; height:12px; border-radius:50%;
+                        background:{{ $loop->first ? 'var(--c-accent1)' : '#fff' }};
+                        border:2px solid {{ $loop->first ? 'var(--c-accent1)' : '#CBD5E1' }};
+                        box-shadow:{{ $loop->first ? '0 0 0 3px rgba(6,182,212,.15)' : 'none' }};"></div>
+
+            {{-- Eintrag --}}
+            <div style="background:#fff; border:1px solid #E2E8F0; border-radius:10px;
+                        {{ $loop->first ? 'border-left:3px solid var(--c-accent1);' : '' }}
+                        box-shadow:{{ $loop->first ? '0 2px 8px rgba(0,0,0,.06)' : 'none' }};">
+
+                {{-- Header --}}
+                <div style="padding:.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border-bottom:1px solid #F1F5F9;">
+                    <div style="display:flex; align-items:center; gap:.75rem; flex-wrap:wrap;">
+                        {{-- Version --}}
+                        <span style="font-size:.75rem; font-weight:700; color:#fff;
+                                     background:{{ $loop->first ? 'var(--c-accent1)' : '#94A3B8' }};
+                                     padding:.2rem .6rem; border-radius:5px; letter-spacing:.04em;">
+                            v{{ $revision->version ?: '–' }}
+                        </span>
+
+                        {{-- Typ-Badges --}}
+                        @foreach($revision->typesList as $type)
+                            @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
+                            <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                                         font-size:.72rem; font-weight:600;
+                                         background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
+                                {{ $tc['label'] }}
+                            </span>
+                        @endforeach
+
+                        {{-- Titel --}}
+                        <span style="font-size:.9rem; font-weight:700; color:#1E293B;">{{ $revision->title }}</span>
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:.75rem; flex-shrink:0;">
+                        <div style="text-align:right;">
+                            <div style="font-size:.75rem; color:#94A3B8;">{{ $revision->created_at->format('d.m.Y H:i') }}</div>
+                            @if($revision->author)
+                            <div style="font-size:.72rem; color:#CBD5E1;">
+                                {{ $revision->author->vorname }} {{ $revision->author->nachname }}
+                            </div>
+                            @endif
+                        </div>
+                        @if($canEdit)
+                            <a href="{{ route('revisions.replace', [$project, $revision]) }}"
+                               class="btn btn-ghost btn-sm" style="white-space:nowrap;">Ersetzen</a>
+                        @endif
+                    </div>
+                </div>
+
+                {{-- Inhalts-Einträge --}}
+                <div style="padding:.85rem 1.25rem; display:flex; flex-direction:column; gap:.6rem;">
+                    @foreach($revision->entries as $entry)
+                        @php $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
+                        <div style="display:flex; gap:.75rem; align-items:flex-start;">
+                            <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                                         font-size:.7rem; font-weight:600; flex-shrink:0; margin-top:.1rem;
+                                         background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
+                                {{ $tc['label'] }}
+                            </span>
+                            <span style="font-size:.875rem; color:#475569; line-height:1.65;">{{ $entry['content'] }}</span>
+                        </div>
+                    @endforeach
+                </div>
+
+            </div>
+        </div>
+        @endforeach
+    </div>
+@endif
 
 @endsection
