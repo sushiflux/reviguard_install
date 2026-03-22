@@ -123,8 +123,18 @@
             font-size: .7rem; font-weight: 700; color: #fff;
         }
 
-        .sidebar-user .uname  { font-size: .82rem; font-weight: 600; color: #CBD5E1; line-height: 1.2; }
-        .sidebar-user .uroles { font-size: .68rem; color: #475569; }
+        .sidebar-user .uname  { font-size: .82rem; font-weight: 600; color: #CBD5E1; line-height: 1.2; margin-bottom: .3rem; }
+
+        .sidebar-badge {
+            display: inline-flex; align-items: center;
+            padding: .15rem .45rem; border-radius: 999px;
+            font-size: .62rem; font-weight: 700; letter-spacing: .03em;
+            margin-right: .25rem;
+        }
+        .sb-admin   { background: rgba(30,64,175,.35);  color: #93C5FD; }
+        .sb-projektadmin { background: rgba(245,158,11,.25); color: #FCD34D; }
+        .sb-developer    { background: rgba(6,182,212,.2);  color: #67E8F9; }
+        .sb-mitarbeiter  { background: rgba(100,116,139,.2); color: #94A3B8; }
 
         /* ── Header user chip ───────────────────────────────── */
         .topbar-user {
@@ -432,7 +442,19 @@
             <div class="avatar">{{ strtoupper(substr(auth()->user()->vorname, 0, 1) . substr(auth()->user()->nachname ?? '', 0, 1)) }}</div>
             <div>
                 <div class="uname">{{ auth()->user()->name }}</div>
-                <div class="uroles">{{ auth()->user()->roles->pluck('display_name')->implode(', ') ?: '–' }}</div>
+                @php
+                    $roleNames  = auth()->user()->roles->pluck('name')->toArray();
+                    $hasDev     = in_array('developer', $roleNames);
+                    $orgBadge   = in_array('administrator', $roleNames)     ? ['label' => 'Administrator',      'class' => 'sb-admin']
+                                : (in_array('projektleiter_admin', $roleNames) ? ['label' => 'Projektadministrator', 'class' => 'sb-projektadmin']
+                                : ['label' => 'Mitarbeiter', 'class' => 'sb-mitarbeiter']);
+                @endphp
+                <div>
+                    <span class="sidebar-badge {{ $orgBadge['class'] }}">{{ $orgBadge['label'] }}</span>
+                    @if($hasDev)
+                        <span class="sidebar-badge sb-developer">Developer</span>
+                    @endif
+                </div>
             </div>
         </div>
         <form method="POST" action="{{ route('logout') }}">
