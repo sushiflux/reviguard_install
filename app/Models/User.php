@@ -98,4 +98,14 @@ class User extends Authenticatable
         return $this->is_system_admin
             || $this->hasAnyRole(['administrator', 'projektleiter_admin', 'developer']);
     }
+
+    public function canEditProject(int $projectId): bool
+    {
+        if ($this->is_system_admin) return true;
+        if ($this->hasRole('administrator')) return true;
+        return $this->projectRoles()
+            ->where('project_id', $projectId)
+            ->whereHas('role', fn($q) => $q->whereIn('name', ['editor', 'projektleiter']))
+            ->exists();
+    }
 }

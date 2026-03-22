@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\PermissionMatrixController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RevisionController;
 use Illuminate\Support\Facades\Route;
 
 // ----------------------------------------------------------------
@@ -40,6 +41,13 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/create',        [ProjectController::class, 'create'])->name('projects.create');
     Route::post('projects',              [ProjectController::class, 'store'])->name('projects.store');
     Route::delete('projects/{project}',  [ProjectController::class, 'destroy'])->name('projects.destroy');
+    Route::get('projects/{project}',     [ProjectController::class, 'show'])->name('projects.show');
+
+    // Revisionen
+    Route::get('projects/{project}/revisions/create',                    [RevisionController::class, 'create'])->name('revisions.create');
+    Route::post('projects/{project}/revisions',                          [RevisionController::class, 'store'])->name('revisions.store');
+    Route::get('projects/{project}/revisions/{revision}/replace',        [RevisionController::class, 'showReplace'])->name('revisions.replace');
+    Route::post('projects/{project}/revisions/{revision}/replace',       [RevisionController::class, 'storeReplace'])->name('revisions.storeReplace');
 
     // ---- Admin ----
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {

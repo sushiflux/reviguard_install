@@ -25,6 +25,25 @@ class ProjectController extends Controller
         return view('projects.index', compact('projects'));
     }
 
+    public function show(Project $project)
+    {
+        $user = auth()->user();
+        // Access check: must be able to see this project
+        if (!$user->canSeeAllProjects()) {
+            $hasRole = $project->userRoles()->where('user_id', $user->id)->exists();
+            if (!$hasRole) abort(403);
+        }
+
+        $revisions = $project->activeRevisions()
+            ->with('author')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $canEdit = $user->canEditProject($project->id);
+
+        return view('projects.show', compact('project', 'revisions', 'canEdit'));
+    }
+
     public function create()
     {
         if (!auth()->user()->canCreateProjects()) {

@@ -107,7 +107,7 @@
                     {{ $project->created_at->format('d.m.Y') }}
                 </div>
                 <div style="display:flex; gap:.35rem;">
-                    <a href="#" class="btn btn-ghost btn-sm" style="padding:.25rem .6rem; font-size:.75rem;">Öffnen</a>
+                    <a href="{{ route('projects.show', $project) }}" class="btn btn-ghost btn-sm" style="padding:.25rem .6rem; font-size:.75rem;">Öffnen</a>
                     @if(auth()->user()->canCreateProjects())
                     <button onclick="confirmDelete({{ $project->id }}, '{{ addslashes($project->name) }}')"
                             class="btn btn-sm" style="padding:.25rem .6rem; font-size:.75rem; background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.2);">
@@ -149,7 +149,7 @@
                         </td>
                         <td style="font-size:.82rem; color:#94A3B8; white-space:nowrap;">{{ $project->created_at->format('d.m.Y') }}</td>
                         <td style="text-align:right; white-space:nowrap;">
-                            <a href="#" class="btn btn-ghost btn-sm">Öffnen</a>
+                            <a href="{{ route('projects.show', $project) }}" class="btn btn-ghost btn-sm">Öffnen</a>
                             @if(auth()->user()->canCreateProjects())
                             <button onclick="confirmDelete({{ $project->id }}, '{{ addslashes($project->name) }}')"
                                     class="btn btn-sm" style="margin-left:.35rem; background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.2);">
