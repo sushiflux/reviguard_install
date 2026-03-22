@@ -64,7 +64,7 @@
             padding: .5rem 1.25rem .25rem;
             font-size: .65rem; font-weight: 700;
             letter-spacing: .12em; text-transform: uppercase;
-            color: #334155;
+            color: #64748B;
         }
 
         .nav-item {
