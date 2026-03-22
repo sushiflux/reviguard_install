@@ -70,24 +70,30 @@ $typeConfig = [
         </div>
     </div>
 @else
-    <div style="position:relative; padding-left:2.5rem;">
-
-        {{-- Vertikale Timeline-Linie --}}
-        <div style="position:absolute; left:.9rem; top:.5rem; bottom:.5rem; width:2px;
-                    background:linear-gradient(to bottom, var(--c-accent1), #E2E8F0);
-                    border-radius:2px;"></div>
+    <div style="display:flex; flex-direction:column; gap:0;">
 
         @foreach($revisions as $revision)
-        <div style="position:relative; margin-bottom:1.5rem;">
+        <div style="display:flex; gap:0; align-items:stretch;">
 
-            {{-- Dot auf der Linie --}}
-            <div style="position:absolute; left:-1.67rem; top:1.1rem;
-                        width:12px; height:12px; border-radius:50%;
-                        background:{{ $loop->first ? 'var(--c-accent1)' : '#fff' }};
-                        border:2px solid {{ $loop->first ? 'var(--c-accent1)' : '#CBD5E1' }};
-                        box-shadow:{{ $loop->first ? '0 0 0 3px rgba(6,182,212,.15)' : 'none' }};"></div>
+            {{-- Linke Spalte: Linie + Dot --}}
+            <div style="width:40px; flex-shrink:0; display:flex; flex-direction:column; align-items:center;">
+                {{-- Linie oben (nicht beim ersten) --}}
+                <div style="width:2px; flex:0 0 1.25rem;
+                            background:{{ $loop->first ? 'transparent' : ($loop->first ? 'var(--c-accent1)' : '#E2E8F0') }};"></div>
+                {{-- Dot --}}
+                <div style="width:12px; height:12px; border-radius:50%; flex-shrink:0;
+                            background:{{ $loop->first ? 'var(--c-accent1)' : '#fff' }};
+                            border:2px solid {{ $loop->first ? 'var(--c-accent1)' : '#CBD5E1' }};
+                            box-shadow:{{ $loop->first ? '0 0 0 3px rgba(6,182,212,.15)' : 'none' }};
+                            z-index:1;"></div>
+                {{-- Linie unten (nicht beim letzten) --}}
+                @if(!$loop->last)
+                <div style="width:2px; flex:1; min-height:1rem; background:#E2E8F0;"></div>
+                @endif
+            </div>
 
             {{-- Eintrag --}}
+            <div style="flex:1; padding-bottom:1.5rem; padding-left:.75rem; padding-top:.5rem;">
             <div style="background:#fff; border:1px solid #E2E8F0; border-radius:10px;
                         {{ $loop->first ? 'border-left:3px solid var(--c-accent1);' : '' }}
                         box-shadow:{{ $loop->first ? '0 2px 8px rgba(0,0,0,.06)' : 'none' }};">
@@ -148,7 +154,8 @@ $typeConfig = [
                 </div>
 
             </div>
-        </div>
+        </div>{{-- /entry --}}
+        </div>{{-- /row --}}
         @endforeach
     </div>
 @endif
