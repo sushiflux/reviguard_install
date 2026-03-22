@@ -34,8 +34,8 @@ class RolesSeeder extends Seeder
             [
                 'name'         => 'projektleiter_admin',
                 'display_name' => 'Projektleiter-Admin',
-                'description'  => 'Hat Zugriff auf alle Projekte.',
-                'scope'        => 'project',
+                'description'  => 'Hat Zugriff auf alle Projekte. Wird direkt am User vergeben.',
+                'scope'        => 'global',
             ],
             [
                 'name'         => 'projektleiter',
