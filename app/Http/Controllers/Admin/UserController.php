@@ -19,7 +19,10 @@ class UserController extends Controller
 
     public function create()
     {
-        $roles = Role::whereNotIn('name', ['system_admin'])->orderBy('display_name')->get();
+        // Nur globale Rollen (außer system_admin) — Projektrollen über die Matrix
+        $roles = Role::where('scope', 'global')
+            ->where('name', '!=', 'system_admin')
+            ->orderBy('display_name')->get();
         return view('admin.users.create', compact('roles'));
     }
 
@@ -54,7 +57,9 @@ class UserController extends Controller
     {
         if ($user->is_system_admin) abort(403);
 
-        $roles    = Role::whereNotIn('name', ['system_admin'])->orderBy('display_name')->get();
+        $roles     = Role::where('scope', 'global')
+            ->where('name', '!=', 'system_admin')
+            ->orderBy('display_name')->get();
         $userRoles = $user->roles->pluck('id')->toArray();
         return view('admin.users.edit', compact('user', 'roles', 'userRoles'));
     }

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemAdminController;
+use App\Http\Controllers\Admin\PermissionMatrixController;
 use Illuminate\Support\Facades\Route;
 
 // ----------------------------------------------------------------
@@ -38,6 +39,11 @@ Route::middleware('auth')->group(function () {
         Route::get('system-admins',                              [SystemAdminController::class, 'index'])->name('system-admins.index');
         Route::post('system-admins/{user}/toggle',               [SystemAdminController::class, 'toggle'])->name('system-admins.toggle');
         Route::post('system-admins/{user}/reset-password',       [SystemAdminController::class, 'resetPassword'])->name('system-admins.reset-password');
+
+        // Berechtigungsmatrix
+        Route::get('permissions',           [PermissionMatrixController::class, 'index'])->name('permissions.index');
+        Route::post('permissions/assign',   [PermissionMatrixController::class, 'assign'])->name('permissions.assign');
+        Route::delete('permissions/revoke', [PermissionMatrixController::class, 'revoke'])->name('permissions.revoke');
 
         // Einstellungen (Platzhalter)
         Route::get('settings', fn() => view('admin.settings'))->name('settings');
