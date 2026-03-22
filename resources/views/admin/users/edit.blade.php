@@ -1,11 +1,12 @@
 @extends('layouts.app')
 
 @section('title', 'Benutzer bearbeiten')
-@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer</a> &rsaquo; ' . $user->username)
+@section('breadcrumb')
+<a href="{{ route('admin.users.index') }}">Benutzer</a> &rsaquo; {{ $user->username }}
+@endsection
 
 @section('content')
-<div style="max-width:640px;">
-    <div class="card">
+<div class="card">
         <div class="card-header">
             <h2>{{ $user->username }} bearbeiten</h2>
             <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Zurück</a>
@@ -55,5 +56,4 @@
             </form>
         </div>
     </div>
-</div>
 @endsection

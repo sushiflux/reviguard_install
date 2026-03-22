@@ -1,11 +1,12 @@
 @extends('layouts.app')
 
 @section('title', 'Neuer Benutzer')
-@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer</a> &rsaquo; Neu')
+@section('breadcrumb')
+<a href="{{ route('admin.users.index') }}">Benutzer</a> &rsaquo; Neu
+@endsection
 
 @section('content')
-<div style="max-width:640px;">
-    <div class="card">
+<div class="card">
         <div class="card-header">
             <h2>Neuen Benutzer anlegen</h2>
             <a href="{{ route('admin.users.index') }}" class="btn btn-ghost btn-sm">Abbrechen</a>
@@ -60,5 +61,5 @@
             </form>
         </div>
     </div>
-</div>
+@endsection
 @endsection
