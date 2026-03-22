@@ -41,4 +41,34 @@
 - CLAUDE.md erstellt (Projektdokumentation für KI-Assistenten)
 - Bugfix: Storage-Berechtigungen (www-data) im Dockerfile dauerhaft gesetzt
 
+--------------------------------------------------------------------------------
+2026-03-22  |  Berechtigungsmatrix, Projektrollen & Projektadministrator
+--------------------------------------------------------------------------------
+- Matrixberechtigungssystem implementiert:
+    · Tabelle project_user_roles: genau eine Rolle pro User pro Projekt
+    · Matrix-View: Zeilen = User, Spalten = Projekte, Zellen = Rolle
+    · Zuweisung/Entzug per Modal (AJAX, kein Seitenneu­laden)
+- Neue globale Rolle "Projektadministrator":
+    · Darf alle Projekte einsehen
+    · Darf neue Projekte anlegen
+    · Kein Zugang zum Admin-Bereich
+- ProjectController: create/store nur für canCreateProjects()
+  (Projektadministrator + System-Admin)
+- Rollen­beschreibungen als CSS-Tooltip (ⓘ) in User-Anlegen/Bearbeiten-Formular
+- Tooltip-Position­ierung korrigiert (kein Overflow hinter Navigation)
+
+--------------------------------------------------------------------------------
+2026-03-22  |  User-Dropdown im Header & Profil-Seiten
+--------------------------------------------------------------------------------
+- Sidebar-Footer (User-Info + Logout-Button) entfernt
+- Topbar: User-Avatar-Button oben rechts mit Dropdown-Menü:
+    · Meine Berechtigungen  → /profile/roles
+    · Passwort ändern       → /profile/password
+    · Abmelden              → POST /logout
+- Profil-Seiten erstellt:
+    · profile/roles.blade.php    – Globale Rollen + Projektrollen getrennt dargestellt
+    · profile/password.blade.php – Passwort­änderung mit aktuellem Passwort als Check
+- ProfileController mit roles(), showPassword(), updatePassword()
+- Routen hinzugefügt: GET/POST profile/roles, GET/POST profile/password
+
 ================================================================================

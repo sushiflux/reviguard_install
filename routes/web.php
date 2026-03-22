@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemAdminController;
 use App\Http\Controllers\Admin\PermissionMatrixController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 // ----------------------------------------------------------------
@@ -27,6 +28,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // Profil
+    Route::get('profile/roles',    [ProfileController::class, 'roles'])->name('profile.roles');
+    Route::get('profile/password', [ProfileController::class, 'showPassword'])->name('profile.password');
+    Route::post('profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
 
     // Projekte
     Route::get('projects',        [ProjectController::class, 'index'])->name('projects.index');

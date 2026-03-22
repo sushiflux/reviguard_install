@@ -88,20 +88,23 @@
 
         .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-        /* Sidebar footer */
-        .sidebar-footer {
-            padding: 1rem 1.25rem;
-            border-top: 1px solid var(--c-border);
-            flex-shrink: 0;
+        /* ── User-Dropdown (Header) ─────────────────────────── */
+        .user-dropdown-wrap {
+            position: relative;
+            margin-left: auto;
         }
 
-        .sidebar-user {
-            display: flex; align-items: center; gap: .6rem;
-            margin-bottom: .75rem;
+        .user-avatar-btn {
+            display: flex; align-items: center; gap: .5rem;
+            background: none; border: none; cursor: pointer;
+            padding: .3rem .5rem;
+            border-radius: 8px;
+            transition: background .15s;
         }
+        .user-avatar-btn:hover { background: #F1F5F9; }
 
-        .sidebar-user .avatar {
-            width: 32px; height: 32px;
+        .user-avatar-btn .avatar {
+            width: 34px; height: 34px;
             background: linear-gradient(135deg, var(--c-secondary), var(--c-accent1));
             border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
@@ -109,20 +112,55 @@
             flex-shrink: 0;
         }
 
-        .sidebar-user .uname  { font-size: .8rem; font-weight: 600; color: #fff; }
-        .sidebar-user .uroles { font-size: .68rem; color: var(--c-muted); }
+        .user-avatar-btn .uinfo { text-align: left; }
+        .user-avatar-btn .uname  { font-size: .82rem; font-weight: 600; color: #1E293B; line-height: 1.2; }
+        .user-avatar-btn .uroles { font-size: .7rem; color: var(--c-muted); }
 
-        .btn-logout {
-            display: flex; align-items: center; gap: .5rem;
-            width: 100%; padding: .5rem .75rem;
-            background: rgba(239,68,68,.1);
-            border: 1px solid rgba(239,68,68,.2);
-            border-radius: 6px;
-            color: #FCA5A5; font-size: .78rem; cursor: pointer;
-            transition: background .15s;
+        .user-avatar-btn .chevron {
+            width: 14px; height: 14px;
+            color: #94A3B8;
+            transition: transform .2s;
         }
-        .btn-logout:hover { background: rgba(239,68,68,.2); }
-        .btn-logout svg   { width: 14px; height: 14px; }
+
+        .user-dropdown {
+            display: none;
+            position: absolute; top: calc(100% + 6px); right: 0;
+            width: 220px;
+            background: #fff;
+            border: 1px solid #E2E8F0;
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            z-index: 200;
+            overflow: hidden;
+        }
+
+        .user-dropdown.open { display: block; }
+
+        .dropdown-header {
+            padding: .9rem 1rem .75rem;
+            border-bottom: 1px solid #F1F5F9;
+        }
+        .dropdown-header .dname  { font-size: .875rem; font-weight: 700; color: #1E293B; }
+        .dropdown-header .droles { font-size: .72rem; color: var(--c-muted); margin-top: .15rem; }
+
+        .dropdown-item {
+            display: flex; align-items: center; gap: .6rem;
+            padding: .65rem 1rem;
+            font-size: .83rem; color: #475569;
+            text-decoration: none;
+            transition: background .12s;
+            cursor: pointer;
+            border: none; background: none; width: 100%; text-align: left;
+        }
+        .dropdown-item:hover { background: #F8FAFC; color: #1E293B; }
+        .dropdown-item svg   { width: 15px; height: 15px; flex-shrink: 0; color: #94A3B8; }
+        .dropdown-item:hover svg { color: var(--c-accent1); }
+
+        .dropdown-divider { border: none; border-top: 1px solid #F1F5F9; margin: .25rem 0; }
+
+        .dropdown-item.danger       { color: #DC2626; }
+        .dropdown-item.danger svg   { color: #FCA5A5; }
+        .dropdown-item.danger:hover { background: rgba(239,68,68,.05); color: #B91C1C; }
 
         /* ── Main ─────────────────────────────────────────────── */
         .main {
@@ -398,28 +436,6 @@
         @endif
     </nav>
 
-    <div class="sidebar-footer">
-        <div class="sidebar-user">
-            <div class="avatar">{{ strtoupper(substr(auth()->user()->username, 0, 2)) }}</div>
-            <div>
-                <div class="uname">{{ auth()->user()->username }}</div>
-                <div class="uroles">
-                    {{ auth()->user()->roles->pluck('display_name')->implode(', ') ?: '–' }}
-                </div>
-            </div>
-        </div>
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit" class="btn-logout">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                    <polyline points="16 17 21 12 16 7"/>
-                    <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                Abmelden
-            </button>
-        </form>
-    </div>
 </aside>
 
 {{-- ============================================================
@@ -432,6 +448,56 @@
             <a href="{{ route('dashboard') }}">ReviGuard</a>
             @hasSection('breadcrumb') &rsaquo; @yield('breadcrumb') @endif
         </span>
+
+        {{-- User-Dropdown ----------------------------------------}}
+        <div class="user-dropdown-wrap">
+            <button class="user-avatar-btn" id="userMenuBtn" type="button">
+                <div class="avatar">{{ strtoupper(substr(auth()->user()->username, 0, 2)) }}</div>
+                <div class="uinfo">
+                    <div class="uname">{{ auth()->user()->username }}</div>
+                    <div class="uroles">{{ auth()->user()->roles->pluck('display_name')->implode(', ') ?: '–' }}</div>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <polyline points="6 9 12 15 18 9"/>
+                </svg>
+            </button>
+
+            <div class="user-dropdown" id="userDropdown">
+                <div class="dropdown-header">
+                    <div class="dname">{{ auth()->user()->name }}</div>
+                    <div class="droles">{{ auth()->user()->roles->pluck('display_name')->implode(', ') ?: 'Keine globale Rolle' }}</div>
+                </div>
+
+                <a href="{{ route('profile.roles') }}" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
+                    Meine Berechtigungen
+                </a>
+
+                <a href="{{ route('profile.password') }}" class="dropdown-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                    </svg>
+                    Passwort ändern
+                </a>
+
+                <hr class="dropdown-divider">
+
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="dropdown-item danger">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/>
+                            <line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Abmelden
+                    </button>
+                </form>
+            </div>
+        </div>
     </div>
 
     <div class="content">
@@ -447,5 +513,19 @@
 </div>
 
 @stack('scripts')
+<script>
+const btn      = document.getElementById('userMenuBtn');
+const dropdown = document.getElementById('userDropdown');
+btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    dropdown.classList.toggle('open');
+    btn.querySelector('.chevron').style.transform =
+        dropdown.classList.contains('open') ? 'rotate(180deg)' : '';
+});
+document.addEventListener('click', () => {
+    dropdown.classList.remove('open');
+    btn.querySelector('.chevron').style.transform = '';
+});
+</script>
 </body>
 </html>
