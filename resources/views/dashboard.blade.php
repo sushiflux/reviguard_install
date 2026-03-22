@@ -125,13 +125,13 @@
     {{-- Listenansicht --}}
     <div id="view-list" style="display:none;">
         <div class="card">
-            <table class="table">
+            <table class="tbl">
                 <thead>
                     <tr>
                         <th>Projektname</th>
                         <th>Beschreibung</th>
                         <th>Status</th>
-                        <th>Erstellt</th>
+                        <th>Erstellt am</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -139,7 +139,7 @@
                     @foreach($projects as $project)
                     <tr class="proj-row" data-name="{{ strtolower($project->name) }}">
                         <td style="font-weight:600; color:#1E293B;">{{ $project->name }}</td>
-                        <td style="color:#64748B; font-size:.85rem;">{{ $project->description ? Str::limit($project->description, 80) : '–' }}</td>
+                        <td style="color:#64748B; font-size:.85rem; max-width:360px;">{{ $project->description ? Str::limit($project->description, 100) : '–' }}</td>
                         <td>
                             @if($project->is_active)
                                 <span class="badge badge-green">Aktiv</span>
