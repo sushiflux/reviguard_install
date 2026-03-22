@@ -68,7 +68,7 @@
             <div class="card-body">
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
-                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem; justify-content:center;">
 
                         {{-- Kacheln --}}
                         <label style="flex:0 0 170px; cursor:pointer;">
@@ -150,7 +150,7 @@
 
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
-                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem; justify-content:center;">
 
                         {{-- Journal --}}
                         <label style="flex:0 0 170px; cursor:pointer;">
@@ -216,7 +216,7 @@
 
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Vorgänger-Revisionen</label>
-                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem;">
+                    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:.6rem; justify-content:center;">
 
                         {{-- Eingeklappt --}}
                         <label style="flex:0 0 170px; cursor:pointer;">
