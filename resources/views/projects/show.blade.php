@@ -77,19 +77,16 @@ $typeConfig = [
 
             {{-- Linke Spalte: Linie + Dot --}}
             <div style="width:40px; flex-shrink:0; display:flex; flex-direction:column; align-items:center;">
-                {{-- Linie oben (nicht beim ersten) --}}
-                <div style="width:2px; flex:0 0 1.25rem;
-                            background:{{ $loop->first ? 'transparent' : ($loop->first ? 'var(--c-accent1)' : '#E2E8F0') }};"></div>
+                {{-- Linie oben --}}
+                <div style="width:2px; flex:1; background:{{ $loop->first ? 'transparent' : '#E2E8F0' }};"></div>
                 {{-- Dot --}}
                 <div style="width:12px; height:12px; border-radius:50%; flex-shrink:0;
                             background:{{ $loop->first ? 'var(--c-accent1)' : '#fff' }};
                             border:2px solid {{ $loop->first ? 'var(--c-accent1)' : '#CBD5E1' }};
                             box-shadow:{{ $loop->first ? '0 0 0 3px rgba(6,182,212,.15)' : 'none' }};
                             z-index:1;"></div>
-                {{-- Linie unten (nicht beim letzten) --}}
-                @if(!$loop->last)
-                <div style="width:2px; flex:1; min-height:1rem; background:#E2E8F0;"></div>
-                @endif
+                {{-- Linie unten --}}
+                <div style="width:2px; flex:1; background:{{ $loop->last ? 'transparent' : '#E2E8F0' }};"></div>
             </div>
 
             {{-- Eintrag --}}
