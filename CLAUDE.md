@@ -96,6 +96,10 @@ Several pages use a URL-param tab system (`?tab=<name>`). JS reads `request('tab
 
 The WebAuthn scope name is `whereEnabled()` — **not** `enabled()`. Use `$user->webAuthnCredentials()->whereEnabled()->...` everywhere.
 
+**`@json()` in Blade is single-line only.** Multiline PHP expressions (e.g. `->map(fn(...) => [...])`) cause a `ParseError`. Prepare the value in a `@php` block first, then pass the variable to `@json($var)`.
+
+**Permission matrix tab (`admin/access` → `matrix`):** Uses an accordion list — one row per user, click to expand an inline sub-panel listing all projects with current role badge and Ändern/Vergeben buttons. Role assignment opens a modal (AJAX to `admin.permissions.assign` / `admin.permissions.revoke`). Role badge colors: `viewer` = green, `editor` = yellow, `projektleiter` = blue, `projektleiter_admin` = amber, `developer` = purple.
+
 ### Key Files
 | Path | Purpose |
 |------|---------|
