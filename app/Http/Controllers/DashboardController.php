@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use Illuminate\Http\Request;
 
 class DashboardController extends Controller
 {
@@ -20,5 +21,20 @@ class DashboardController extends Controller
         }
 
         return view('dashboard', compact('projects'));
+    }
+
+    public function savePreferences(Request $request)
+    {
+        $data = $request->validate([
+            'view' => ['sometimes', 'in:tile,list'],
+            'sort' => ['sometimes', 'in:az,za'],
+        ]);
+
+        auth()->user()->update($data === [] ? [] : [
+            'dashboard_view' => $data['view'] ?? auth()->user()->dashboard_view,
+            'dashboard_sort' => $data['sort'] ?? auth()->user()->dashboard_sort,
+        ]);
+
+        return response()->json(['ok' => true]);
     }
 }

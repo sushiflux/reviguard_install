@@ -17,6 +17,8 @@ class User extends Authenticatable
         'password',
         'is_active',
         'is_system_admin',
+        'dashboard_view',
+        'dashboard_sort',
     ];
 
     protected $hidden = [

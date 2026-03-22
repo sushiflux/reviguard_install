@@ -4,7 +4,7 @@
 @section('breadcrumb', 'Passwort ändern')
 
 @section('content')
-<div style="max-width:480px;">
+<div>
     <div class="card">
         <div class="card-header">
             <h2>

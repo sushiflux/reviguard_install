@@ -149,19 +149,29 @@
 @endif
 
 <script>
-let currentSort = localStorage.getItem('dashboard_sort') || 'az';
-let currentView = localStorage.getItem('dashboard_view') || 'tile';
+let currentSort = '{{ auth()->user()->dashboard_sort }}';
+let currentView = '{{ auth()->user()->dashboard_view }}';
+const prefUrl   = '{{ route('dashboard.preferences') }}';
+const csrfToken = '{{ csrf_token() }}';
+
+function savePreferences(key, val) {
+    fetch(prefUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+        body: JSON.stringify({ [key]: val }),
+    });
+}
 
 function setSort(s) {
     currentSort = s;
-    localStorage.setItem('dashboard_sort', s);
+    savePreferences('sort', s);
     applySort();
     updateSortButtons();
 }
 
 function setView(v) {
     currentView = v;
-    localStorage.setItem('dashboard_view', v);
+    savePreferences('view', v);
     applyView();
     updateViewButtons();
 }

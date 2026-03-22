@@ -28,6 +28,9 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Dashboard-Einstellungen
+    Route::post('dashboard/preferences', [DashboardController::class, 'savePreferences'])->name('dashboard.preferences');
+
     // Profil
     Route::get('profile/roles',    [ProfileController::class, 'roles'])->name('profile.roles');
     Route::get('profile/password', [ProfileController::class, 'showPassword'])->name('profile.password');
