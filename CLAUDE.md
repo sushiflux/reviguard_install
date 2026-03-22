@@ -47,8 +47,14 @@ DB credentials: user `appuser` / password `apppassword`, database `reviguard`.
 
 **Stack:** Laravel 12 · PHP 8.2-FPM · Nginx · MySQL 8 — all via Docker Compose.
 
-### Authentication
-Login uses `username` (not `email`). `Auth::attempt(['username' => ..., 'password' => ...])` works because the Eloquent provider resolves any column key dynamically. The custom `LoginController` (`app/Http/Controllers/Auth/`) also checks `is_active` before allowing login.
+### Authentication & 2FA
+Login uses `username` (not `email`). The custom `LoginController` checks `is_active` before allowing login, then checks if 2FA is required.
+
+**2FA flow:** After a successful credential check, if `$user->requiresTwoFactor()` is true, the user is immediately logged out, their ID is stored in `session('2fa_pending_user_id')`, and they are redirected to `/2fa`. The `2fa.pending` middleware (`RequirePendingTwoFactor`) guards all `/2fa/*` routes. `Auth::loginUsingId()` is only called after successful TOTP or WebAuthn verification.
+
+**Supported methods:** TOTP via `pragmarx/google2fa` + `bacon/bacon-qr-code`; WebAuthn (YubiKey) via `laragear/webauthn` v4.1. The `User` model implements `WebAuthnAuthenticatable` and uses the `WebAuthnAuthentication` trait.
+
+**Admin global policy:** stored as `system_settings` key `2fa_policy` (values: `none` | `any` | `totp` | `webauthn`). `User::requiresTwoFactor()` returns true if the user has any 2FA enabled, OR if the global policy is not `none`.
 
 Initial System-Admin: `RGAdmin` / `RGAdmin`.
 
@@ -62,23 +68,44 @@ Roles (slugs): `viewer`, `editor`, `projektleiter`, `developer`, `projektleiter_
 
 Helper methods on `User`: `hasRole(string)`, `hasAnyRole(array)`, `hasProjectRole(int, string)`, `isAdmin()`.
 
-The `admin` middleware (`AdminMiddleware`) gates the entire `/admin/*` prefix — it passes only if `isAdmin()` is true (i.e. `is_system_admin === true` OR has `administrator` role).
+The `admin` middleware gates the entire `/admin/*` prefix — passes only if `isAdmin()` is true (`is_system_admin === true` OR has `administrator` role).
 
 ### Revision Safety
 `revisions` table has **no soft-deletes and no hard-delete route**. Entries are superseded rather than deleted: set `replaced_by_revision_id`, `replaced_by_user_id`, and `replaced_at`. Active revisions are those where `replaced_at IS NULL`.
 
+**Predecessor chain display:** `ProjectController::show()` builds a `$replacedMap` — all replaced revisions keyed by `replaced_by_revision_id` — loaded in a single query. Each active revision walks this map in PHP to build its full predecessor chain without recursive eager loading.
+
 ### Views & Layout
-All authenticated pages extend `resources/views/layouts/app.blade.php`, which renders the sidebar. The sidebar Admin section is conditionally shown via `auth()->user()->isAdmin()`. No Vite/Tailwind — all CSS is plain inline `<style>` blocks using CSS custom properties defined in the layout.
+All authenticated pages extend `resources/views/layouts/app.blade.php`. No Vite/Tailwind — all CSS is plain inline `<style>` blocks using CSS custom properties.
 
 Color scheme variables (defined in `layouts/app.blade.php` and `auth/login.blade.php`):
 - `--c-primary: #0D1B2A` · `--c-secondary: #1E40AF` · `--c-accent1: #06B6D4` · `--c-accent2: #F59E0B` · `--c-neutral: #F1F5F9`
 
+The `2fa/challenge.blade.php` is a standalone page (does **not** extend `layouts/app`) — it mirrors the login page style.
+
+**Dynamic timeline (projects/show.blade.php):** Do NOT use Blade `$loop->first/$loop->last` for visual styling in the journal view. JS owns all timeline visual state and recalculates after every filter operation (`updateJournalTimeline()`). Predecessor `<tr>` rows must use `display:table-row` (not `display:block`) to preserve colspan behavior.
+
+### Tab-based Admin & Profile Pages
+Several pages use a URL-param tab system (`?tab=<name>`). JS reads `request('tab', '<default>')` in Blade and `history.replaceState` keeps the tab on form submits. Old dedicated routes redirect to the combined page:
+
+| Page | Route | Tabs |
+|------|-------|------|
+| `admin/access` | `admin.access` | `benutzer`, `matrix` |
+| `admin/settings` | `admin.settings` | `system`, `sicherheit`, `system-admins` |
+| `profile/settings` | `profile.settings` | `darstellung`, `passwort`, `2fa` |
+
+The WebAuthn scope name is `whereEnabled()` — **not** `enabled()`. Use `$user->webAuthnCredentials()->whereEnabled()->...` everywhere.
+
 ### Key Files
 | Path | Purpose |
 |------|---------|
-| `bootstrap/app.php` | Middleware aliases registered here (`admin`) |
+| `bootstrap/app.php` | Middleware aliases: `admin`, `2fa.pending` |
 | `routes/web.php` | All routes; admin group uses `middleware(['auth','admin'])` |
-| `app/Models/User.php` | Role helpers, `isAdmin()` |
+| `app/Models/User.php` | Role helpers, `isAdmin()`, 2FA helpers |
+| `app/Models/SystemSetting.php` | Key-value settings table; `SystemSetting::get($key, $default)` / `::set($key, $value)` |
+| `resources/views/admin/access.blade.php` | Benutzer & Berechtigungen (2 tabs) |
+| `resources/views/admin/settings.blade.php` | Admin-Einstellungen (3 tabs) |
+| `resources/views/profile/settings.blade.php` | Profil-Einstellungen (3 tabs) |
 | `database/seeders/RolesSeeder.php` | Seeds all 7 roles |
 | `database/seeders/SystemAdminSeeder.php` | Creates `RGAdmin` user |
 | `DEVELOPER_DIARY.txt` | Freeform change log for the developer; entries go here before publishing to `version_changelog` table |

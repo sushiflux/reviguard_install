@@ -71,4 +71,88 @@
 - ProfileController mit roles(), showPassword(), updatePassword()
 - Routen hinzugefügt: GET/POST profile/roles, GET/POST profile/password
 
+--------------------------------------------------------------------------------
+2026-03-22  |  Revisionsansicht: Journal & Liste mit Suche und Filter
+--------------------------------------------------------------------------------
+- Projektdetailseite (projects/show) komplett neu gebaut:
+    · Zwei Ansichtsmodi: Journal (Timeline) und Liste (Tabelle)
+    · Umschaltung per Toggle-Buttons in der Toolbar; Präferenz wird in DB gespeichert
+    · Suchfeld: filtert gleichzeitig nach Revisionsnummer, Titel, Autor und Beschreibung
+    · Typ-Filter: Badges (Release, Hotfix, Update, Sicherheit, Sonstige) als
+      Toggle-Buttons; mehrere gleichzeitig anwählbar
+- Journal-Ansicht:
+    · Timeline mit Linie und Punkten (40 px-Spalte + flex:1-Karte)
+    · Filterung via JS – Blade $loop->first/last wird nicht für Styles verwendet;
+      JS berechnet nach jedem Filter-Ereignis den ersten/letzten sichtbaren
+      Eintrag neu (updateJournalTimeline())
+    · Aktuelle/erste Revision: Cyan-Akzent; alle anderen: neutral
+- Listen-Ansicht:
+    · Tabelle mit Spalten: Version, Typ, Titel, Autor, Datum
+    · Erste sichtbare Zeile erhält Cyan-Hintergrund (updateListFirstBadge())
+    · Klick auf Titel → springt zur entsprechenden Revision im Journal +
+      Highlight-Animation (outline-basierter Puls, kein box-shadow-Konflikt)
+- Badge-Reihenfolge: Versions-Badge → Ersetzt-Icon → Pipe → Typ-Badges → Titel
+- Typ "Aktualisierung" in "Update" umbenannt
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Vorgänger-Revisionen (Ersetzt-System)
+--------------------------------------------------------------------------------
+- Ersetzt-System visualisiert: Wenn Revision A durch B ersetzt wird, erscheint
+  bei B ein graues Rotate/History-Icon-Badge
+- Klick auf das Icon klappt das Vorgänger-Panel auf (Journal) bzw. zeigt
+  Vorgänger-Zeilen (Liste) direkt unter dem Eintrag
+- Vollständige Vorgängerkette: Mehrfach-Ersetzungen werden komplett angezeigt
+  (A ersetzt B, B ersetzt C → C und B sind Vorgänger von A)
+- Technisch: $replacedMap in ProjectController::show() lädt alle ersetzten
+  Revisionen in einer einzigen Query und baut die Kette in PHP auf (kein N+1)
+- Vorgänger-Zeilen in der Listenansicht: display:table-row (nicht block),
+  damit colspan korrekt funktioniert
+- Klick auf Vorgänger-Titel in der Liste → springt ebenfalls ins Journal
+  (jumpToPredecessor())
+- Highlight-Animation: @keyframes revHighlight nutzt outline, @keyframes
+  predHighlight nutzt background-color (kein Konflikt mit JS-inline-Styles)
+
+--------------------------------------------------------------------------------
+2026-03-22  |  User-Einstellungen (Profil-Seite)
+--------------------------------------------------------------------------------
+- Neue Profil-Seite "Einstellungen" (profile/settings.blade.php):
+    · Dashboard-Ansicht: Kacheln oder Liste
+    · Revisions-Ansicht: Journal oder Liste
+    · Vorgänger: Standard ausgeklappt oder eingeklappt
+    · Einstellungen werden in der users-Tabelle gespeichert:
+      dashboard_view, revision_view, predecessors_expanded
+- ProfileController: showSettings() + saveSettings()
+- Routen: GET/POST profile/settings
+- Dropdown-Menü in der Topbar: Eintrag "Einstellungen" hinzugefügt
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Zwei-Faktor-Authentifizierung (TOTP + WebAuthn)
+--------------------------------------------------------------------------------
+- TOTP (Authenticator-App) implementiert:
+    · Pakete: pragmarx/google2fa, bacon/bacon-qr-code
+    · Einrichtung: QR-Code + manueller Schlüssel unter profile/2fa/totp/setup
+    · Bestätigung mit 6-stelligem Code; Secret wird erst nach Bestätigung gespeichert
+    · Deaktivierung mit Passwort-Bestätigung
+- WebAuthn / YubiKey implementiert:
+    · Paket: laragear/webauthn v4.1
+    · User-Model: WebAuthnAuthenticatable-Interface + WebAuthnAuthentication-Trait
+    · Registrierung über Browser-API (navigator.credentials.create) ohne Seitenladen
+    · Credentials können umbenannt und gelöscht werden
+    · Migration: create_webauthn_credentials (Basis-Migration des Pakets)
+- 2FA-Challenge-Flow:
+    · Nach erfolgreichem Login wird geprüft ob 2FA nötig ist
+    · Falls ja: Auth::logout(), 2fa_pending_user_id in Session, Redirect zu /2fa
+    · Middleware RequirePendingTwoFactor schützt alle /2fa/*-Routen
+    · Challenge-Seite: eigenständiges Layout (wie Login-Seite), zeigt TOTP-Formular
+      und/oder YubiKey-Button je nach aktiven Methoden des Users
+    · Nach Verifizierung: Auth::loginUsingId(), Session-Key gelöscht, Redirect zum Dashboard
+- Globale Admin-Richtlinie:
+    · Neue Tabelle: system_settings (key-value)
+    · Model: SystemSetting mit statischen get()/set()-Methoden
+    · Admin-Seite: admin/2fa-policy – Optionen: Keine Pflicht / Beliebig / Nur TOTP / Nur YubiKey
+    · User::requiresTwoFactor() prüft: eigene 2FA aktiv ODER globale Policy != none
+- Neue Routen-Gruppe: prefix('2fa'), middleware('2fa.pending')
+- Middleware-Alias 2fa.pending in bootstrap/app.php registriert
+- Sidebar-Navigation: "Zwei-Faktor-Auth" im Konto-Bereich, "2FA-Richtlinie" im Admin-Bereich
+
 ================================================================================

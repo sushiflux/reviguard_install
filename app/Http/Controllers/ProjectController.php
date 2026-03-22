@@ -39,9 +39,17 @@ class ProjectController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        // All replaced revisions keyed by the ID of the revision that replaced them.
+        // This allows building the full predecessor chain without recursive queries.
+        $replacedMap = $project->revisions()
+            ->with('author')
+            ->whereNotNull('replaced_at')
+            ->get()
+            ->keyBy('replaced_by_revision_id');
+
         $canEdit = $user->canEditProject($project->id);
 
-        return view('projects.show', compact('project', 'revisions', 'canEdit'));
+        return view('projects.show', compact('project', 'revisions', 'replacedMap', 'canEdit'));
     }
 
     public function create()

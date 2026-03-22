@@ -42,6 +42,14 @@ class Revision extends Model
         return $this->belongsTo(Revision::class, 'replaced_by_revision_id');
     }
 
+    /**
+     * The revision that this revision replaced (i.e. the old/superseded one).
+     */
+    public function predecessor()
+    {
+        return $this->hasOne(Revision::class, 'replaced_by_revision_id');
+    }
+
     public function replacedByUser()
     {
         return $this->belongsTo(User::class, 'replaced_by_user_id');

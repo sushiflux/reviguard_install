@@ -33,7 +33,7 @@ Neue Revision
                 <label class="form-label">Typ hinzufügen</label>
                 <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.35rem;">
                     @foreach([
-                        'update'  => ['label' => 'Aktualisierung', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
+                        'update'  => ['label' => 'Update', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
                         'change'  => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
                         'fix'     => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
                         'release' => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],

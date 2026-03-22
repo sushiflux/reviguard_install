@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laragear\WebAuthn\Contracts\WebAuthnAuthenticatable;
+use Laragear\WebAuthn\WebAuthnAuthentication;
 
-class User extends Authenticatable
+class User extends Authenticatable implements WebAuthnAuthenticatable
 {
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, WebAuthnAuthentication;
 
     protected $fillable = [
         'vorname',
@@ -20,6 +22,10 @@ class User extends Authenticatable
         'is_system_admin',
         'dashboard_view',
         'dashboard_sort',
+        'revision_view',
+        'predecessors_expanded',
+        'totp_secret',
+        'totp_enabled_at',
     ];
 
     public function getNameAttribute(): string
@@ -30,15 +36,18 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'totp_secret',
     ];
 
     protected function casts(): array
     {
         return [
-            'email_verified_at' => 'datetime',
-            'password'          => 'hashed',
-            'is_active'         => 'boolean',
-            'is_system_admin'   => 'boolean',
+            'email_verified_at'     => 'datetime',
+            'password'              => 'hashed',
+            'is_active'             => 'boolean',
+            'is_system_admin'       => 'boolean',
+            'predecessors_expanded' => 'boolean',
+            'totp_enabled_at'       => 'datetime',
         ];
     }
 
@@ -107,5 +116,33 @@ class User extends Authenticatable
             ->where('project_id', $projectId)
             ->whereHas('role', fn($q) => $q->whereIn('name', ['editor', 'projektleiter']))
             ->exists();
+    }
+
+    // ── 2FA helpers ─────────────────────────────────────────────────
+
+    public function hasTotpEnabled(): bool
+    {
+        return $this->totp_enabled_at !== null;
+    }
+
+    public function hasWebAuthnEnabled(): bool
+    {
+        return $this->webAuthnCredentials()->whereEnabled()->exists();
+    }
+
+    public function hasTwoFactorEnabled(): bool
+    {
+        return $this->hasTotpEnabled() || $this->hasWebAuthnEnabled();
+    }
+
+    /**
+     * Returns true if this user must complete 2FA (own setting OR global admin policy).
+     */
+    public function requiresTwoFactor(): bool
+    {
+        if ($this->hasTwoFactorEnabled()) return true;
+
+        $policy = SystemSetting::get('2fa_policy', 'none');
+        return $policy !== 'none';
     }
 }

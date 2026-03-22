@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\SystemSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -45,6 +46,13 @@ class LoginController extends Controller
         }
 
         $request->session()->regenerate();
+
+        // Check if 2FA is required
+        if ($user->requiresTwoFactor()) {
+            Auth::logout(); // Logout until 2FA is completed
+            session(['2fa_pending_user_id' => $user->id]);
+            return redirect()->route('2fa.challenge');
+        }
 
         return redirect()->intended(route('dashboard'));
     }

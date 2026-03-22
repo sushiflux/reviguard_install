@@ -26,13 +26,16 @@ class DashboardController extends Controller
     public function savePreferences(Request $request)
     {
         $data = $request->validate([
-            'view' => ['sometimes', 'in:tile,list'],
-            'sort' => ['sometimes', 'in:az,za'],
+            'view'          => ['sometimes', 'in:tile,list'],
+            'sort'          => ['sometimes', 'in:az,za'],
+            'revision_view' => ['sometimes', 'in:journal,list'],
         ]);
 
-        auth()->user()->update($data === [] ? [] : [
-            'dashboard_view' => $data['view'] ?? auth()->user()->dashboard_view,
-            'dashboard_sort' => $data['sort'] ?? auth()->user()->dashboard_sort,
+        $user = auth()->user();
+        $user->update([
+            'dashboard_view' => $data['view']          ?? $user->dashboard_view,
+            'dashboard_sort' => $data['sort']          ?? $user->dashboard_sort,
+            'revision_view'  => $data['revision_view'] ?? $user->revision_view,
         ]);
 
         return response()->json(['ok' => true]);

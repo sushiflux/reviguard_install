@@ -51,7 +51,7 @@ class UserController extends Controller
             $user->roles()->sync($data['roles']);
         }
 
-        return redirect()->route('admin.users.index')
+        return redirect()->to(route('admin.access') . '?tab=benutzer')
             ->with('success', "Benutzer \"{$user->username}\" wurde angelegt.");
     }
 
@@ -81,7 +81,7 @@ class UserController extends Controller
         $user->update(['vorname' => $data['vorname'], 'nachname' => $data['nachname'], 'email' => $data['email']]);
         $user->roles()->sync($data['roles'] ?? []);
 
-        return redirect()->route('admin.users.index')
+        return redirect()->to(route('admin.access') . '?tab=benutzer')
             ->with('success', "Benutzer \"{$user->username}\" wurde aktualisiert.");
     }
 

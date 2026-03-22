@@ -37,6 +37,32 @@ class ProfileController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        return back()->with('success', 'Passwort wurde erfolgreich geändert.');
+        return redirect()->to(route('profile.settings') . '?tab=passwort')
+            ->with('success', 'Passwort wurde erfolgreich geändert.');
+    }
+
+    public function showSettings()
+    {
+        $user        = auth()->user();
+        $credentials = $user->webAuthnCredentials()->whereEnabled()->get();
+
+        return view('profile.settings', compact('credentials'));
+    }
+
+    public function saveSettings(Request $request)
+    {
+        $data = $request->validate([
+            'dashboard_view'        => ['required', 'in:tile,list'],
+            'revision_view'         => ['required', 'in:journal,list'],
+            'predecessors_expanded' => ['required', 'in:0,1'],
+        ]);
+
+        auth()->user()->update([
+            'dashboard_view'        => $data['dashboard_view'],
+            'revision_view'         => $data['revision_view'],
+            'predecessors_expanded' => (bool) $data['predecessors_expanded'],
+        ]);
+
+        return back()->with('success', 'Einstellungen wurden gespeichert.');
     }
 }
