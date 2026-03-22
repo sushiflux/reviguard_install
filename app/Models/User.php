@@ -82,12 +82,12 @@ class User extends Authenticatable
 
     public function canCreateProjects(): bool
     {
-        return $this->is_system_admin || $this->hasRole('projektadministrator');
+        return $this->is_system_admin || $this->hasRole('projektleiter_admin');
     }
 
     public function canSeeAllProjects(): bool
     {
         return $this->is_system_admin
-            || $this->hasAnyRole(['administrator', 'projektadministrator', 'developer']);
+            || $this->hasAnyRole(['administrator', 'projektleiter_admin', 'developer']);
     }
 }
