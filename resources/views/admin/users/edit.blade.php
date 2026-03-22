@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Benutzer bearbeiten')
-@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer & Rollen</a> &rsaquo; ' . $user->username)
+@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer</a> &rsaquo; ' . $user->username)
 
 @section('content')
 <div style="max-width:640px;">

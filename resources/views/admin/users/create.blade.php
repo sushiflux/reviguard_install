@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Neuer Benutzer')
-@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer & Rollen</a> &rsaquo; Neu')
+@section('breadcrumb', '<a href="' . route('admin.users.index') . '">Benutzer</a> &rsaquo; Neu')
 
 @section('content')
 <div style="max-width:640px;">

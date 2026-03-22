@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Benutzer & Rollen')
-@section('breadcrumb', 'Benutzer & Rollen')
+@section('title', 'Benutzer')
+@section('breadcrumb', 'Benutzer')
 
 @section('content')
 <div class="card">
