@@ -2,14 +2,14 @@
 
 @section('title', 'Neues Projekt')
 @section('breadcrumb')
-<a href="{{ route('projects.index') }}">Projekte</a> &rsaquo; Neu
+<a href="{{ route('dashboard') }}">Dashboard</a> &rsaquo; Neues Projekt
 @endsection
 
 @section('content')
 <div class="card">
     <div class="card-header">
         <h2>Neues Projekt anlegen</h2>
-        <a href="{{ route('projects.index') }}" class="btn btn-ghost btn-sm">Abbrechen</a>
+        <a href="{{ route('dashboard') }}" class="btn btn-ghost btn-sm">Abbrechen</a>
     </div>
     <div class="card-body">
         <form method="POST" action="{{ route('projects.store') }}">
@@ -31,7 +31,7 @@
             </div>
 
             <div style="display:flex; justify-content:flex-end; gap:.75rem; margin-top:.5rem;">
-                <a href="{{ route('projects.index') }}" class="btn btn-ghost">Abbrechen</a>
+                <a href="{{ route('dashboard') }}" class="btn btn-ghost">Abbrechen</a>
                 <button type="submit" class="btn btn-primary">Projekt anlegen</button>
             </div>
         </form>
