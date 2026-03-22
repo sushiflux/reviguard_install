@@ -429,15 +429,14 @@ document.getElementById('userResetModal').addEventListener('click', function(e) 
 });
 
 // ── Matrix Data ────────────────────────────────────────────
+@php
+    $usersJson    = $users->map(fn($u) => ['id' => $u->id, 'username' => $u->username, 'name' => $u->name, 'roles' => $u->roles->pluck('display_name')->values()]);
+    $projectsJson = $projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name]);
+@endphp
 const matrixData      = @json($matrix);
 const allProjectRoles = @json($projectRoles);
-const allProjects     = @json($projects->map(fn($p) => ['id' => $p->id, 'name' => $p->name]));
-const allUsersData    = @json($users->map(fn($u) => [
-    'id'       => $u->id,
-    'username' => $u->username,
-    'name'     => $u->name,
-    'roles'    => $u->roles->pluck('display_name')->values(),
-]));
+const allProjects     = @json($projectsJson);
+const allUsersData    = @json($usersJson);
 
 const roleColors = {
     'projektleiter_admin': { bg: 'rgba(245,158,11,.15)',  color: '#B45309', border: 'rgba(245,158,11,.3)' },
