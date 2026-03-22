@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemAdminController;
 use App\Http\Controllers\Admin\PermissionMatrixController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
@@ -25,9 +26,7 @@ Route::post('/logout', [LoginController::class, 'logout'])
 // ----------------------------------------------------------------
 Route::middleware('auth')->group(function () {
 
-    Route::get('/', function () {
-        return view('dashboard');
-    })->name('dashboard');
+    Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
     // Profil
     Route::get('profile/roles',    [ProfileController::class, 'roles'])->name('profile.roles');
