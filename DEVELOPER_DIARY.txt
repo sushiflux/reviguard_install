@@ -1,0 +1,44 @@
+================================================================================
+  REVIGUARD — DEVELOPER TAGEBUCH
+  Hier werden alle Neuerungen und Änderungen mit Datum festgehalten,
+  damit sie anschließend im Versions-Changelog dokumentiert werden können.
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Initiales Setup
+--------------------------------------------------------------------------------
+- Projekt ReviGuard aufgesetzt (Laravel + Docker: Nginx, PHP-FPM, MySQL)
+- Datenbankstruktur angelegt:
+    · users          – Erweiterung um username, is_active, is_system_admin
+    · roles          – Viewer, Editor, Projektleiter, Developer,
+                       Projektleiter-Admin, Administrator, System-Admin
+    · user_roles     – Globale Rollenzuweisung pro User
+    · projects       – Systemprojekverwaltung
+    · project_user_roles – Projektspe­zifische Rollenzuweisung
+    · revisions      – Revisionssichere Einträge (kein Delete, nur Ersetzen)
+    · version_changelog – Versions­tagebuch für Developer
+- Initialer System-Admin angelegt: RGAdmin (nicht löschbar)
+- Login-Seite erstellt:
+    · 1/3 Formular (username + password), 2/3 IT-Security Visual
+    · Farbschema: Navy #0D1B2A | Blue #1E40AF | Cyan #06B6D4 | Amber #F59E0B
+    · Rollenbasierter Schutz: deaktivierte Accounts werden abgewiesen
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Admin-Bereich & Sidebar-Navigation
+--------------------------------------------------------------------------------
+- Sidebar-Layout erstellt (layouts/app.blade.php):
+    · Feste linke Navigationsleiste mit Logo, User-Info und Logout
+    · Admin-Bereich in der Sidebar nur für Rolle administrator/system_admin sichtbar
+    · Aktive Seite wird farblich hervorgehoben (Cyan-Akzent)
+- Admin-Middleware (AdminMiddleware) schützt alle /admin/*-Routen
+- Admin-Bereich implementiert:
+    · Benutzer & Rollen: Anlegen, Bearbeiten, Aktivieren/Deaktivieren, Passwort-Reset
+    · System-Admins: Nur Ansicht, Aktivieren/Deaktivieren, Passwort-Reset
+      (System-Admins können nicht gelöscht werden)
+    · Einstellungen: Platzhalter für spätere Implementierung
+- Passwort-Reset über Modal-Fenster direkt in der Tabelle (kein extra Seitenaufruf)
+- Dashboard als Kachelansicht vorbereitet (Platzhalter für Projekte)
+- CLAUDE.md erstellt (Projektdokumentation für KI-Assistenten)
+- Bugfix: Storage-Berechtigungen (www-data) im Dockerfile dauerhaft gesetzt
+
+================================================================================
