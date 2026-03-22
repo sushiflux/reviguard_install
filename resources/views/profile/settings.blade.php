@@ -69,30 +69,75 @@
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
                     <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+
+                        {{-- Kacheln --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="dashboard_view" value="tile"
                                    {{ $user->dashboard_view === 'tile' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ $user->dashboard_view === 'tile' ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-                                    <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2"  y="2"  width="44" height="30" rx="3" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <rect x="6"  y="7"  width="22" height="4"  rx="1" fill="#94A3B8"/>
+                                        <rect x="6"  y="14" width="34" height="3"  rx="1" fill="#CBD5E1"/>
+                                        <rect x="6"  y="19" width="26" height="3"  rx="1" fill="#E2E8F0"/>
+                                        <circle cx="9" cy="28" r="3" fill="#06B6D4"/>
+                                        <rect x="54" y="2"  width="44" height="30" rx="3" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <rect x="58" y="7"  width="18" height="4"  rx="1" fill="#94A3B8"/>
+                                        <rect x="58" y="14" width="34" height="3"  rx="1" fill="#CBD5E1"/>
+                                        <rect x="58" y="19" width="28" height="3"  rx="1" fill="#E2E8F0"/>
+                                        <circle cx="61" cy="28" r="3" fill="#F59E0B"/>
+                                        <rect x="2"  y="36" width="44" height="30" rx="3" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <rect x="6"  y="41" width="26" height="4"  rx="1" fill="#94A3B8"/>
+                                        <rect x="6"  y="48" width="34" height="3"  rx="1" fill="#CBD5E1"/>
+                                        <rect x="6"  y="53" width="20" height="3"  rx="1" fill="#E2E8F0"/>
+                                        <circle cx="9" cy="62" r="3" fill="#06B6D4"/>
+                                        <rect x="54" y="36" width="44" height="30" rx="3" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <rect x="58" y="41" width="30" height="4"  rx="1" fill="#94A3B8"/>
+                                        <rect x="58" y="48" width="34" height="3"  rx="1" fill="#CBD5E1"/>
+                                        <rect x="58" y="53" width="24" height="3"  rx="1" fill="#E2E8F0"/>
+                                        <circle cx="61" cy="62" r="3" fill="#F59E0B"/>
+                                    </svg>
+                                </div>
                                 <span>Kacheln</span>
                             </div>
                         </label>
+
+                        {{-- Liste --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="dashboard_view" value="list"
                                    {{ $user->dashboard_view === 'list' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ $user->dashboard_view === 'list' ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
-                                    <line x1="3" y1="18" x2="21" y2="18"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2" y="2"  width="96" height="11" rx="2" fill="#E2E8F0"/>
+                                        <rect x="5" y="5"  width="18" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="30" y="5" width="14" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="65" y="5" width="12" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="2" y="16" width="96" height="10" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="19" width="28" height="3"  rx="1" fill="#64748B"/>
+                                        <rect x="30" y="19" width="18" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="80" y="18" width="14" height="5" rx="2" fill="#DCFCE7"/>
+                                        <rect x="2" y="29" width="96" height="10" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="32" width="22" height="3"  rx="1" fill="#64748B"/>
+                                        <rect x="30" y="32" width="22" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="80" y="31" width="14" height="5" rx="2" fill="#FEF9C3"/>
+                                        <rect x="2" y="42" width="96" height="10" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="45" width="32" height="3"  rx="1" fill="#64748B"/>
+                                        <rect x="30" y="45" width="16" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="80" y="44" width="14" height="5" rx="2" fill="#DCFCE7"/>
+                                        <rect x="2" y="55" width="96" height="10" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="58" width="25" height="3"  rx="1" fill="#64748B"/>
+                                        <rect x="30" y="58" width="20" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="80" y="57" width="14" height="5" rx="2" fill="#FEE2E2"/>
+                                    </svg>
+                                </div>
                                 <span>Liste</span>
                             </div>
                         </label>
+
                     </div>
                 </div>
             </div>
@@ -106,61 +151,134 @@
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Standard-Ansicht</label>
                     <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+
+                        {{-- Journal --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="revision_view" value="journal"
                                    {{ $user->revision_view === 'journal' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ $user->revision_view === 'journal' ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
-                                    <line x1="8" y1="18" x2="21" y2="18"/>
-                                    <circle cx="3" cy="6" r="1.5" fill="currentColor" stroke="none"/>
-                                    <circle cx="3" cy="12" r="1.5" fill="currentColor" stroke="none"/>
-                                    <circle cx="3" cy="18" r="1.5" fill="currentColor" stroke="none"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <line x1="13" y1="4"  x2="13" y2="64" stroke="#E2E8F0" stroke-width="2"/>
+                                        <circle cx="13" cy="12" r="5" fill="#06B6D4"/>
+                                        <rect x="23" y="8.5" width="40" height="4" rx="1" fill="#334155"/>
+                                        <rect x="23" y="15"  width="54" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="23" y="20"  width="42" height="3" rx="1" fill="#E2E8F0"/>
+                                        <circle cx="13" cy="38" r="5" fill="#06B6D4"/>
+                                        <rect x="23" y="34.5" width="32" height="4" rx="1" fill="#334155"/>
+                                        <rect x="23" y="41"   width="50" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="23" y="46"   width="38" height="3" rx="1" fill="#E2E8F0"/>
+                                        <circle cx="13" cy="62" r="5" fill="#06B6D4"/>
+                                        <rect x="23" y="58.5" width="44" height="4" rx="1" fill="#334155"/>
+                                    </svg>
+                                </div>
                                 <span>Journal</span>
                             </div>
                         </label>
+
+                        {{-- Liste --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="revision_view" value="list"
                                    {{ $user->revision_view === 'list' ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ $user->revision_view === 'list' ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
-                                    <line x1="3" y1="18" x2="21" y2="18"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2" y="2"  width="96" height="11" rx="2" fill="#E2E8F0"/>
+                                        <rect x="5" y="5"  width="14" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="26" y="5" width="18" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="70" y="5" width="10" height="4" rx="1" fill="#94A3B8"/>
+                                        <rect x="2" y="16" width="96" height="9" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="18.5" width="22" height="3" rx="1" fill="#64748B"/>
+                                        <rect x="26" y="18.5" width="30" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="70" y="17.5" width="22" height="5" rx="2" fill="#CFFAFE"/>
+                                        <rect x="2" y="28" width="96" height="9" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="30.5" width="18" height="3" rx="1" fill="#64748B"/>
+                                        <rect x="26" y="30.5" width="26" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="70" y="29.5" width="22" height="5" rx="2" fill="#FEF9C3"/>
+                                        <rect x="2" y="40" width="96" height="9" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="42.5" width="26" height="3" rx="1" fill="#64748B"/>
+                                        <rect x="26" y="42.5" width="32" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="70" y="41.5" width="22" height="5" rx="2" fill="#CFFAFE"/>
+                                        <rect x="2" y="52" width="96" height="9" rx="1" fill="#F8FAFC" stroke="#F1F5F9" stroke-width="1"/>
+                                        <rect x="5" y="54.5" width="20" height="3" rx="1" fill="#64748B"/>
+                                        <rect x="26" y="54.5" width="28" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="70" y="53.5" width="22" height="5" rx="2" fill="#CFFAFE"/>
+                                    </svg>
+                                </div>
                                 <span>Liste</span>
                             </div>
                         </label>
+
                     </div>
                 </div>
 
                 <div class="form-group" style="margin-bottom:0;">
                     <label class="form-label">Vorgänger-Revisionen</label>
                     <div style="display:flex; gap:.75rem; margin-top:.5rem;">
+
+                        {{-- Eingeklappt --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="predecessors_expanded" value="0"
                                    {{ !$user->predecessors_expanded ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ !$user->predecessors_expanded ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <polyline points="9 18 15 12 9 6"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2" y="3"  width="96" height="14" rx="2" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="11" cy="10" r="4" fill="#06B6D4"/>
+                                        <rect x="20" y="7"  width="38" height="4" rx="1" fill="#334155"/>
+                                        <rect x="20" y="13" width="26" height="2.5" rx="1" fill="#CBD5E1"/>
+                                        <polyline points="88,7 92,10 88,13" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <rect x="2" y="22" width="96" height="14" rx="2" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="11" cy="29" r="4" fill="#06B6D4"/>
+                                        <rect x="20" y="26" width="44" height="4" rx="1" fill="#334155"/>
+                                        <rect x="20" y="32" width="30" height="2.5" rx="1" fill="#CBD5E1"/>
+                                        <polyline points="88,26 92,29 88,32" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <rect x="2" y="41" width="96" height="14" rx="2" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="11" cy="48" r="4" fill="#06B6D4"/>
+                                        <rect x="20" y="45" width="32" height="4" rx="1" fill="#334155"/>
+                                        <rect x="20" y="51" width="22" height="2.5" rx="1" fill="#CBD5E1"/>
+                                        <polyline points="88,45 92,48 88,51" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
                                 <span>Eingeklappt</span>
                             </div>
                         </label>
+
+                        {{-- Ausgeklappt --}}
                         <label style="flex:1; cursor:pointer;">
                             <input type="radio" name="predecessors_expanded" value="1"
                                    {{ $user->predecessors_expanded ? 'checked' : '' }}
                                    style="display:none;" class="pref-radio">
                             <div class="pref-option {{ $user->predecessors_expanded ? 'pref-active' : '' }}">
-                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-                                    <polyline points="6 9 12 15 18 9"/>
-                                </svg>
+                                <div class="pref-preview">
+                                    <svg viewBox="0 0 100 68" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <rect x="2" y="2"  width="96" height="13" rx="2" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1"/>
+                                        <circle cx="11" cy="8.5" r="4" fill="#06B6D4"/>
+                                        <rect x="20" y="5.5" width="38" height="4" rx="1" fill="#1D4ED8"/>
+                                        <rect x="20" y="11"  width="24" height="2.5" rx="1" fill="#BFDBFE"/>
+                                        <polyline points="88,6 91,8.5 88,11" stroke="#93C5FD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" transform="rotate(90 89.5 8.5)"/>
+                                        <rect x="11" y="18" width="87" height="9" rx="2" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="18" cy="22.5" r="2.5" fill="#94A3B8"/>
+                                        <rect x="24" y="20.5" width="32" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="60" y="20"   width="18" height="4" rx="2" fill="#CFFAFE"/>
+                                        <rect x="11" y="30" width="87" height="9" rx="2" fill="#F8FAFC" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="18" cy="34.5" r="2.5" fill="#94A3B8"/>
+                                        <rect x="24" y="32.5" width="26" height="3" rx="1" fill="#CBD5E1"/>
+                                        <rect x="60" y="32"   width="18" height="4" rx="2" fill="#FEF9C3"/>
+                                        <rect x="2" y="43" width="96" height="13" rx="2" fill="#F1F5F9" stroke="#E2E8F0" stroke-width="1"/>
+                                        <circle cx="11" cy="49.5" r="4" fill="#06B6D4"/>
+                                        <rect x="20" y="46.5" width="44" height="4" rx="1" fill="#334155"/>
+                                        <rect x="20" y="52"   width="28" height="2.5" rx="1" fill="#CBD5E1"/>
+                                        <polyline points="88,47 92,49.5 88,52" stroke="#CBD5E1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
                                 <span>Ausgeklappt</span>
                             </div>
                         </label>
+
                     </div>
                 </div>
 
@@ -430,7 +548,7 @@
     flex-direction: column;
     align-items: center;
     gap: .5rem;
-    padding: 1rem;
+    padding: .75rem;
     border: 2px solid #E2E8F0;
     border-radius: 10px;
     background: #F8FAFC;
@@ -442,6 +560,17 @@
 }
 .pref-option:hover  { border-color: var(--c-accent1); color: var(--c-accent1); background: #ECFEFF; }
 .pref-active        { border-color: var(--c-accent1) !important; background: #ECFEFF !important; color: var(--c-accent1) !important; }
+
+.pref-preview {
+    width: 100%;
+    background: #fff;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: .1rem;
+}
+.pref-preview svg { display: block; width: 100%; height: auto; }
+.pref-active .pref-preview { border-color: rgba(6,182,212,.35); }
 </style>
 
 @push('scripts')
