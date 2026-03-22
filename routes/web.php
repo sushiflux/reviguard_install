@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\SystemAdminController;
 use App\Http\Controllers\Admin\PermissionMatrixController;
+use App\Http\Controllers\ProjectController;
 use Illuminate\Support\Facades\Route;
 
 // ----------------------------------------------------------------
@@ -26,6 +27,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         return view('dashboard');
     })->name('dashboard');
+
+    // Projekte
+    Route::get('projects',        [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('projects',       [ProjectController::class, 'store'])->name('projects.store');
 
     // ---- Admin ----
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
