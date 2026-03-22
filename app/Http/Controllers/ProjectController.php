@@ -60,7 +60,7 @@ class ProjectController extends Controller
             'created_by'  => auth()->id(),
         ]);
 
-        return redirect()->route('projects.index')
+        return redirect()->route('dashboard')
             ->with('success', "Projekt \"{$data['name']}\" wurde angelegt.");
     }
 }
