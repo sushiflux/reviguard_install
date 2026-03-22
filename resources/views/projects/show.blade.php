@@ -601,8 +601,10 @@ function matchItem(item, q) {
 
     let matchSearch = true;
     if (q) {
+        const ver = item.dataset.version.toLowerCase();
         const fields = [
-            item.dataset.version.toLowerCase(),
+            ver,
+            'v' + ver,
             item.dataset.title,
             item.dataset.types,
             item.dataset.author,
