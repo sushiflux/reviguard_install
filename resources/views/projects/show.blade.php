@@ -82,7 +82,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
              style="position:absolute; left:.7rem; top:50%; transform:translateY(-50%); pointer-events:none;">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
-        <input id="rev-search" type="search" placeholder="Suche nach Nummer, Titel, Typ, Autor, Datum, Beschreibung…"
+        <input id="rev-search" type="search" placeholder="Suche… mehrere Begriffe mit Leerzeichen, * als Platzhalter"
                style="width:100%; padding:.5rem .75rem .5rem 2.1rem; border:1px solid #E2E8F0; border-radius:7px;
                       font-size:.85rem; color:#1E293B; outline:none; box-sizing:border-box;"
                onfocus="this.style.borderColor='var(--c-accent1)'"
@@ -475,8 +475,8 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
 <script>
 const SAVE_URL  = '{{ route('dashboard.preferences') }}';
 const CSRF      = '{{ csrf_token() }}';
-let currentView = '{{ $savedView }}';
-let activeType  = '';
+let currentView  = '{{ $savedView }}';
+const activeTypes = new Set();
 
 // ---- Jump from list predecessor to journal predecessor panel ----
 function jumpToPredecessor(parentId, predId) {
@@ -545,12 +545,18 @@ function setView(v) {
     });
 }
 
-// ---- Type filter ----
+// ---- Type filter (multi-select) ----
 document.querySelectorAll('.type-filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        activeType = btn.dataset.type;
+        if (btn.dataset.type === '') {
+            activeTypes.clear();
+        } else {
+            if (activeTypes.has(btn.dataset.type)) activeTypes.delete(btn.dataset.type);
+            else activeTypes.add(btn.dataset.type);
+        }
         document.querySelectorAll('.type-filter-btn').forEach(b => {
-            const isActive = b.dataset.type === activeType;
+            const isAll    = b.dataset.type === '';
+            const isActive = isAll ? activeTypes.size === 0 : activeTypes.has(b.dataset.type);
             b.classList.toggle('active-filter', isActive);
             b.style.opacity = isActive ? '1' : '.65';
         });
@@ -588,15 +594,32 @@ function applyFilter() {
     updateListFirstBadge();
 }
 
+function termToRegex(term) {
+    // Escape regex special chars except *, then convert * to .*
+    const escaped = term.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp(escaped.replace(/\*/g, '.*'));
+}
+
 function matchItem(item, q) {
-    const matchType = !activeType || item.dataset.types.split(' ').includes(activeType);
-    const matchSearch = !q ||
-        item.dataset.version.toLowerCase().includes(q) ||
-        item.dataset.title.includes(q) ||
-        item.dataset.types.includes(q) ||
-        item.dataset.author.includes(q) ||
-        item.dataset.date.includes(q) ||
-        item.dataset.content.includes(q);
+    // Multi-type: item must have at least one of the selected types
+    const matchType = activeTypes.size === 0 ||
+        item.dataset.types.split(' ').some(t => activeTypes.has(t));
+
+    // Search: space-separated terms, all must match (AND); * = wildcard
+    let matchSearch = true;
+    if (q) {
+        const fields = [
+            item.dataset.version.toLowerCase(),
+            item.dataset.title,
+            item.dataset.types,
+            item.dataset.author,
+            item.dataset.date,
+            item.dataset.content,
+        ].join(' ');
+        const terms = q.trim().split(/\s+/).filter(Boolean);
+        matchSearch = terms.every(term => termToRegex(term).test(fields));
+    }
+
     return matchType && matchSearch;
 }
 
