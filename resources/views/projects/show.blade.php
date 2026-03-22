@@ -69,11 +69,11 @@
                 <tbody>
                     @php
                     $typeConfig = [
-                        'update'  => ['label' => 'Aktualisierung', 'class' => 'badge-blue'],
-                        'change'  => ['label' => 'Änderung',       'class' => 'badge-amber'],
-                        'fix'     => ['label' => 'Fehlerbehebung', 'class' => 'badge-red'],
-                        'release' => ['label' => 'Release',        'class' => 'badge-green'],
-                        'hotfix'  => ['label' => 'Hotfix',         'class' => 'badge-red'],
+                        'update'  => ['label' => 'Aktualisierung', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
+                        'change'  => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
+                        'fix'     => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
+                        'release' => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],
+                        'hotfix'  => ['label' => 'Hotfix',         'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
                     ];
                     @endphp
                     @foreach($revisions as $revision)
@@ -81,8 +81,11 @@
                         <td style="font-weight:600; color:#1E293B;">{{ $revision->title }}</td>
                         <td style="white-space:nowrap;">
                             @foreach($revision->typesList as $type)
-                                <span class="badge {{ $typeConfig[$type]['class'] ?? 'badge-gray' }}" style="margin-right:.2rem;">
-                                    {{ $typeConfig[$type]['label'] ?? $type }}
+                                @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
+                                <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                                             font-size:.72rem; font-weight:600; margin-right:.25rem;
+                                             background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
+                                    {{ $tc['label'] }}
                                 </span>
                             @endforeach
                         </td>

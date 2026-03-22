@@ -33,16 +33,18 @@ Neue Revision
                 <label class="form-label">Typ hinzufügen</label>
                 <div style="display:flex; flex-wrap:wrap; gap:.5rem; margin-top:.35rem;">
                     @foreach([
-                        'update'  => ['label' => 'Aktualisierung', 'class' => 'badge-blue'],
-                        'change'  => ['label' => 'Änderung',       'class' => 'badge-amber'],
-                        'fix'     => ['label' => 'Fehlerbehebung', 'class' => 'badge-red'],
-                        'release' => ['label' => 'Release',        'class' => 'badge-green'],
-                        'hotfix'  => ['label' => 'Hotfix',         'class' => 'badge-red'],
+                        'update'  => ['label' => 'Aktualisierung', 'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
+                        'change'  => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
+                        'fix'     => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
+                        'release' => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],
+                        'hotfix'  => ['label' => 'Hotfix',         'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
                     ] as $typeKey => $cfg)
                     <button type="button" class="type-add-btn"
-                            data-type="{{ $typeKey }}" data-label="{{ $cfg['label'] }}" data-badge="{{ $cfg['class'] }}"
-                            style="padding:.3rem .85rem; border-radius:999px; border:2px dashed #CBD5E1;
-                                   background:transparent; cursor:pointer; font-size:.78rem; font-weight:600; color:#475569;">
+                            data-type="{{ $typeKey }}" data-label="{{ $cfg['label'] }}"
+                            data-bg="{{ $cfg['bg'] }}" data-color="{{ $cfg['color'] }}" data-border="{{ $cfg['border'] }}"
+                            style="padding:.3rem .85rem; border-radius:6px; border:1px solid {{ $cfg['border'] }};
+                                   background:{{ $cfg['bg'] }}; cursor:pointer; font-size:.78rem; font-weight:600;
+                                   color:{{ $cfg['color'] }}; transition:opacity .15s;">
                         + {{ $cfg['label'] }}
                     </button>
                     @endforeach
@@ -72,20 +74,21 @@ Neue Revision
 let entryIndex = 0;
 
 document.querySelectorAll('.type-add-btn').forEach(btn => {
-    btn.addEventListener('mouseover', () => { btn.style.borderColor = 'var(--c-accent1)'; btn.style.color = 'var(--c-accent1)'; });
-    btn.addEventListener('mouseout',  () => { btn.style.borderColor = '#CBD5E1'; btn.style.color = '#475569'; });
-    btn.addEventListener('click', () => addEntry(btn.dataset.type, btn.dataset.label, btn.dataset.badge));
+    btn.addEventListener('mouseover', () => btn.style.opacity = '.75');
+    btn.addEventListener('mouseout',  () => btn.style.opacity = '1');
+    btn.addEventListener('click', () => addEntry(btn.dataset.type, btn.dataset.label, btn.dataset.bg, btn.dataset.color, btn.dataset.border));
 });
 
-function addEntry(type, label, badgeClass) {
+function addEntry(type, label, bg, color, border) {
     document.getElementById('empty-hint').style.display = 'none';
     const idx = entryIndex++;
     const div = document.createElement('div');
     div.className = 'entry-row';
-    div.style.cssText = 'display:flex; gap:.75rem; align-items:flex-start; padding:.85rem 1rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; border-left:3px solid var(--c-accent1);';
+    div.style.cssText = `display:flex; gap:.75rem; align-items:flex-start; padding:.85rem 1rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; border-left:3px solid ${border};`;
     div.innerHTML = `
         <div style="padding-top:.3rem; flex-shrink:0; min-width:110px;">
-            <span class="badge ${badgeClass}">${label}</span>
+            <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                         font-size:.72rem; font-weight:600; background:${bg}; color:${color}; border:1px solid ${border};">${label}</span>
         </div>
         <input type="hidden" name="entries[${idx}][type]" value="${type}">
         <textarea name="entries[${idx}][content]" rows="3" required
