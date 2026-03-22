@@ -63,4 +63,17 @@ class ProjectController extends Controller
         return redirect()->route('dashboard')
             ->with('success', "Projekt \"{$data['name']}\" wurde angelegt.");
     }
+
+    public function destroy(Project $project)
+    {
+        if (!auth()->user()->canCreateProjects()) {
+            abort(403);
+        }
+
+        $name = $project->name;
+        $project->delete();
+
+        return redirect()->route('dashboard')
+            ->with('success', "Projekt \"{$name}\" wurde gelöscht.");
+    }
 }

@@ -106,7 +106,17 @@
                 <div style="font-size:.72rem; color:#94A3B8;">
                     {{ $project->created_at->format('d.m.Y') }}
                 </div>
-                <a href="#" class="btn btn-ghost btn-sm" style="padding:.25rem .6rem; font-size:.75rem;">Öffnen</a>
+                <div style="display:flex; gap:.35rem;">
+                    <a href="#" class="btn btn-ghost btn-sm" style="padding:.25rem .6rem; font-size:.75rem;">Öffnen</a>
+                    @if(auth()->user()->canCreateProjects())
+                    <button onclick="confirmDelete({{ $project->id }}, '{{ addslashes($project->name) }}')"
+                            class="btn btn-sm" style="padding:.25rem .6rem; font-size:.75rem; background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.2);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:12px;height:12px;">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                        </svg>
+                    </button>
+                    @endif
+                </div>
             </div>
         </div>
         @endforeach
@@ -138,7 +148,18 @@
                             @endif
                         </td>
                         <td style="font-size:.82rem; color:#94A3B8; white-space:nowrap;">{{ $project->created_at->format('d.m.Y') }}</td>
-                        <td style="text-align:right;"><a href="#" class="btn btn-ghost btn-sm">Öffnen</a></td>
+                        <td style="text-align:right; white-space:nowrap;">
+                            <a href="#" class="btn btn-ghost btn-sm">Öffnen</a>
+                            @if(auth()->user()->canCreateProjects())
+                            <button onclick="confirmDelete({{ $project->id }}, '{{ addslashes($project->name) }}')"
+                                    class="btn btn-sm" style="margin-left:.35rem; background:rgba(239,68,68,.08); color:#DC2626; border:1px solid rgba(239,68,68,.2);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;">
+                                    <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+                                </svg>
+                                Löschen
+                            </button>
+                            @endif
+                        </td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -250,5 +271,39 @@ applySort();
 applyView();
 updateSortButtons();
 updateViewButtons();
+
+@if(auth()->user()->canCreateProjects())
+function confirmDelete(id, name) {
+    document.getElementById('deleteProjectName').textContent = name;
+    document.getElementById('deleteForm').action = '/projects/' + id;
+    document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('open');
+}
+document.getElementById('deleteModal')?.addEventListener('click', function(e) {
+    if (e.target === this) closeDeleteModal();
+});
+@endif
 </script>
+
+@if(auth()->user()->canCreateProjects())
+<div class="modal-backdrop" id="deleteModal">
+    <div class="modal">
+        <h3>Projekt löschen</h3>
+        <p style="font-size:.875rem; color:#64748B; margin-bottom:1.25rem;">
+            Soll das Projekt <strong id="deleteProjectName"></strong> wirklich gelöscht werden? Diese Aktion kann nicht rückgängig gemacht werden.
+        </p>
+        <form id="deleteForm" method="POST">
+            @csrf
+            @method('DELETE')
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" onclick="closeDeleteModal()">Abbrechen</button>
+                <button type="submit" class="btn btn-danger">Löschen</button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
+
 @endsection
