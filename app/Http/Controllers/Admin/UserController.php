@@ -30,7 +30,8 @@ class UserController extends Controller
     {
         $data = $request->validate([
             'username' => ['required', 'string', 'max:50', 'unique:users'],
-            'name'     => ['required', 'string', 'max:100'],
+            'vorname'  => ['required', 'string', 'max:100'],
+            'nachname' => ['required', 'string', 'max:100'],
             'email'    => ['required', 'email', 'unique:users'],
             'password' => ['required', Password::min(8)],
             'roles'    => ['nullable', 'array'],
@@ -39,7 +40,8 @@ class UserController extends Controller
 
         $user = User::create([
             'username' => $data['username'],
-            'name'     => $data['name'],
+            'vorname'  => $data['vorname'],
+            'nachname' => $data['nachname'],
             'email'    => $data['email'],
             'password' => Hash::make($data['password']),
             'is_active' => true,
@@ -69,13 +71,14 @@ class UserController extends Controller
         if ($user->is_system_admin) abort(403);
 
         $data = $request->validate([
-            'name'    => ['required', 'string', 'max:100'],
-            'email'   => ['required', 'email', 'unique:users,email,' . $user->id],
-            'roles'   => ['nullable', 'array'],
-            'roles.*' => ['exists:roles,id'],
+            'vorname'  => ['required', 'string', 'max:100'],
+            'nachname' => ['required', 'string', 'max:100'],
+            'email'    => ['required', 'email', 'unique:users,email,' . $user->id],
+            'roles'    => ['nullable', 'array'],
+            'roles.*'  => ['exists:roles,id'],
         ]);
 
-        $user->update(['name' => $data['name'], 'email' => $data['email']]);
+        $user->update(['vorname' => $data['vorname'], 'nachname' => $data['nachname'], 'email' => $data['email']]);
         $user->roles()->sync($data['roles'] ?? []);
 
         return redirect()->route('admin.users.index')

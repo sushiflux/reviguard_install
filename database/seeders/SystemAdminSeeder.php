@@ -14,7 +14,8 @@ class SystemAdminSeeder extends Seeder
         $admin = User::firstOrCreate(
             ['username' => 'RGAdmin'],
             [
-                'name'            => 'System Administrator',
+                'vorname'         => 'System',
+                'nachname'        => 'Administrator',
                 'username'        => 'RGAdmin',
                 'email'           => 'rgadmin@reviguard.local',
                 'password'        => Hash::make('RGAdmin'),

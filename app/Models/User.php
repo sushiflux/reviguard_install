@@ -11,7 +11,8 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     protected $fillable = [
-        'name',
+        'vorname',
+        'nachname',
         'username',
         'email',
         'password',
@@ -20,6 +21,11 @@ class User extends Authenticatable
         'dashboard_view',
         'dashboard_sort',
     ];
+
+    public function getNameAttribute(): string
+    {
+        return trim($this->vorname . ' ' . $this->nachname);
+    }
 
     protected $hidden = [
         'password',

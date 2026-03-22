@@ -414,7 +414,7 @@
 
     <div class="sidebar-footer">
         <div class="sidebar-user">
-            <div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+            <div class="avatar">{{ strtoupper(substr(auth()->user()->vorname, 0, 1) . substr(auth()->user()->nachname ?? '', 0, 1)) }}</div>
             <div>
                 <div class="uname">{{ auth()->user()->name }}</div>
                 <div class="uroles">{{ auth()->user()->roles->pluck('display_name')->implode(', ') ?: '–' }}</div>
@@ -447,7 +447,7 @@
         </span>
 
         <div class="topbar-user">
-            <div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+            <div class="avatar">{{ strtoupper(substr(auth()->user()->vorname, 0, 1) . substr(auth()->user()->nachname ?? '', 0, 1)) }}</div>
             <span class="uname">{{ auth()->user()->name }}</span>
         </div>
     </div>

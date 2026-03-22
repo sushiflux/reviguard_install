@@ -22,16 +22,23 @@
                         @error('username')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                     <div class="form-group">
-                        <label class="form-label">Name *</label>
-                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
-                        @error('name')<div class="form-error">{{ $message }}</div>@enderror
+                        <label class="form-label">E-Mail *</label>
+                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+                        @error('email')<div class="form-error">{{ $message }}</div>@enderror
                     </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">E-Mail *</label>
-                    <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-                    @error('email')<div class="form-error">{{ $message }}</div>@enderror
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                    <div class="form-group">
+                        <label class="form-label">Vorname *</label>
+                        <input type="text" name="vorname" class="form-control" value="{{ old('vorname') }}" required>
+                        @error('vorname')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nachname *</label>
+                        <input type="text" name="nachname" class="form-control" value="{{ old('nachname') }}" required>
+                        @error('nachname')<div class="form-error">{{ $message }}</div>@enderror
+                    </div>
                 </div>
 
                 <div class="form-group">
