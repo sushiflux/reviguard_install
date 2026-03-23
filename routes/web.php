@@ -8,6 +8,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RevisionController;
+use App\Http\Controllers\VersionChangelogController;
 use App\Http\Controllers\TwoFactorChallengeController;
 use App\Http\Controllers\WebAuthn\WebAuthnRegisterController;
 use App\Http\Controllers\WebAuthn\WebAuthnTwoFactorController;
@@ -77,6 +78,20 @@ Route::middleware('auth')->group(function () {
     Route::get('projects/{project}/revisions/{revision}/replace',  [RevisionController::class, 'showReplace'])->name('revisions.replace');
     Route::post('projects/{project}/revisions/{revision}/replace', [RevisionController::class, 'storeReplace'])->name('revisions.storeReplace');
 
+    // Changelog (alle authentifizierten User)
+    Route::get('changelog', [VersionChangelogController::class, 'index'])->name('changelog.index');
+
+    // Changelog verwalten (Developer + Admin)
+    Route::prefix('developer')->name('changelog.')->group(function () {
+        Route::get('changelog',              [VersionChangelogController::class, 'manage'])->name('manage');
+        Route::get('changelog/create',       [VersionChangelogController::class, 'create'])->name('create');
+        Route::post('changelog',             [VersionChangelogController::class, 'store'])->name('store');
+        Route::get('changelog/{entry}/edit', [VersionChangelogController::class, 'edit'])->name('edit');
+        Route::put('changelog/{entry}',      [VersionChangelogController::class, 'update'])->name('update');
+        Route::post('changelog/{entry}/release', [VersionChangelogController::class, 'release'])->name('release');
+        Route::delete('changelog/{entry}',   [VersionChangelogController::class, 'destroy'])->name('destroy');
+    });
+
     // ---- Admin ----
     Route::middleware('admin')->prefix('admin')->name('admin.')->group(function () {
 
@@ -109,12 +124,15 @@ Route::middleware('auth')->group(function () {
         Route::delete('permissions/revoke', [PermissionMatrixController::class, 'revoke'])->name('permissions.revoke');
 
         Route::get('settings', function () {
-            $policy = \App\Models\SystemSetting::get('2fa_policy', 'none');
-            $admins = \App\Models\User::with('roles')->where('is_system_admin', true)->orderBy('username')->get();
-            return view('admin.settings', compact('policy', 'admins'));
+            $policy          = \App\Models\SystemSetting::get('2fa_policy', 'none');
+            $sessionTimeout  = (int) \App\Models\SystemSetting::get('session_timeout', 10);
+            $admins          = \App\Models\User::with('roles')->where('is_system_admin', true)->orderBy('username')->get();
+            return view('admin.settings', compact('policy', 'admins', 'sessionTimeout'));
         })->name('settings');
 
         Route::get('2fa-policy',  fn() => redirect()->to(route('admin.settings') . '?tab=sicherheit'))->name('2fa-policy.show');
         Route::post('2fa-policy', [\App\Http\Controllers\Admin\TwoFactorPolicyController::class, 'save'])->name('2fa-policy.save');
+
+        Route::post('session-timeout', [\App\Http\Controllers\Admin\SessionTimeoutController::class, 'save'])->name('session-timeout.save');
     });
 });

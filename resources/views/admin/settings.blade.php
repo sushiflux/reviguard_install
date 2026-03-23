@@ -55,12 +55,12 @@
         <div class="card-header">
             <h2>Systemeinstellungen</h2>
         </div>
-        <div class="card-body" style="text-align:center; padding:4rem; color:#94A3B8;">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin-bottom:1rem;">
+        <div class="card-body" style="text-align:center; padding:4rem; color:var(--t-text-sub);">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:1rem; opacity:.3;">
                 <circle cx="12" cy="12" r="3"/>
                 <path d="M19.07 4.93A10 10 0 0 0 4.93 19.07M4.93 4.93a10 10 0 0 0 14.14 14.14"/>
             </svg>
-            <div style="font-size:.95rem; font-weight:600; color:#64748B;">Einstellungen</div>
+            <div style="font-size:.95rem; font-weight:600; color:var(--t-text-muted);">Einstellungen</div>
             <div style="font-size:.82rem; margin-top:.4rem;">Dieser Bereich wird in einer späteren Version implementiert.</div>
         </div>
     </div>
@@ -108,14 +108,14 @@
                                   as $value => [$label, $desc])
                         <label style="display:flex; align-items:flex-start; gap:.75rem; cursor:pointer;
                                       padding:.85rem 1rem; border-radius:8px;
-                                      border:1px solid {{ $policy === $value ? 'var(--c-accent1)' : '#E2E8F0' }};
-                                      background:{{ $policy === $value ? 'rgba(6,182,212,.06)' : '#fff' }};">
+                                      border:1px solid {{ $policy === $value ? 'var(--c-accent1)' : 'var(--t-border)' }};
+                                      background:{{ $policy === $value ? 'rgba(6,182,212,.06)' : 'var(--t-surface)' }};">
                             <input type="radio" name="policy" value="{{ $value }}"
                                    {{ $policy === $value ? 'checked' : '' }}
                                    style="margin-top:.15rem; accent-color:var(--c-accent1);">
                             <div>
-                                <div style="font-size:.875rem; font-weight:600; color:#1E293B; margin-bottom:.2rem;">{{ $label }}</div>
-                                <div style="font-size:.8rem; color:#64748B;">{{ $desc }}</div>
+                                <div style="font-size:.875rem; font-weight:600; color:var(--t-text); margin-bottom:.2rem;">{{ $label }}</div>
+                                <div style="font-size:.8rem; color:var(--t-text-muted);">{{ $desc }}</div>
                             </div>
                         </label>
                         @endforeach
@@ -129,6 +129,59 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
                         Richtlinie speichern
                     </button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    {{-- ── Session-Timeout ── --}}
+    <div class="card" style="margin-top:1.25rem;">
+        <div class="card-header">
+            <h2>
+                <span style="display:inline-flex; align-items:center; gap:.5rem;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    Session-Timeout
+                </span>
+            </h2>
+        </div>
+        <div class="card-body">
+
+            <div style="background:rgba(245,158,11,.07); border:1px solid rgba(245,158,11,.2);
+                        border-radius:8px; padding:.875rem 1rem; margin-bottom:1.75rem;">
+                <p style="font-size:.83rem; color:var(--t-text-muted); line-height:1.6;">
+                    <strong>Hinweis:</strong> Benutzer werden nach der angegebenen Inaktivitätsdauer automatisch abgemeldet.
+                    Ein Countdown-Timer wird in der Topbar angezeigt und leuchtet <strong>orange</strong> auf, wenn noch 2 Minuten verbleiben.
+                    Wert <strong>0</strong> deaktiviert den Timer vollständig.
+                </p>
+            </div>
+
+            <form method="POST" action="{{ route('admin.session-timeout.save') }}">
+                @csrf
+                <div class="form-group" style="max-width:320px;">
+                    <label class="form-label">Inaktivitätsdauer (Minuten)</label>
+                    <div style="display:flex; align-items:center; gap:.75rem; margin-top:.25rem;">
+                        <input type="number" name="session_timeout" min="0" max="480" value="{{ $sessionTimeout }}"
+                               class="form-control" style="max-width:120px;">
+                        <span style="font-size:.82rem; color:var(--t-text-muted);">Minuten (0 = deaktiviert)</span>
+                    </div>
+                    @error('session_timeout')<div class="form-error">{{ $message }}</div>@enderror
+                </div>
+
+                <div style="display:flex; gap:.75rem; align-items:center; margin-top:.25rem;">
+                    <button type="submit" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        Speichern
+                    </button>
+                    <div style="display:flex; gap:.4rem; align-items:center;">
+                        @foreach([5 => '5 min', 10 => '10 min', 15 => '15 min', 30 => '30 min', 0 => 'Aus'] as $val => $lbl)
+                        <button type="button" onclick="document.querySelector('[name=session_timeout]').value='{{ $val }}'"
+                                class="btn btn-ghost btn-sm">{{ $lbl }}</button>
+                        @endforeach
+                    </div>
                 </div>
             </form>
 
@@ -217,7 +270,7 @@
 <div class="modal-backdrop" id="resetModal">
     <div class="modal">
         <h3>Passwort zurücksetzen</h3>
-        <p style="font-size:.85rem; color:#64748B; margin-bottom:1rem;">
+        <p style="font-size:.85rem; color:var(--t-text-muted); margin-bottom:1rem;">
             Neues Passwort für System-Admin <strong id="modalUsername"></strong> setzen.
         </p>
         <form id="resetForm" method="POST">

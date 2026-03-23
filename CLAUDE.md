@@ -105,6 +105,21 @@ The WebAuthn scope name is `whereEnabled()` — **not** `enabled()`. Use `$user-
 
 **Permission matrix tab (`admin/access` → `matrix`):** Uses an accordion list — one row per user, click to expand an inline sub-panel listing all projects with current role badge and Ändern/Vergeben buttons. Role assignment opens a modal (AJAX to `admin.permissions.assign` / `admin.permissions.revoke`). Role badge colors: `viewer` = green, `editor` = yellow, `projektleiter` = blue, `projektleiter_admin` = amber, `developer` = purple.
 
+### Revision Entry Types
+Valid values for `entries.*.type` (enforced in `RevisionController` validation and `rev-type-badge` dark mode CSS in `app.blade.php`):
+
+| Type | Label | Color |
+|------|-------|-------|
+| `release` | Release | green |
+| `update` | Update | blue |
+| `change` | Änderung | yellow |
+| `fix` | Fehlerbehebung | red |
+| `hotfix` | Hotfix | red |
+| `deaktiviert` | Deaktiviert | gray |
+| `broken` | Broken | dark/black |
+
+Badge colors are defined in two places: inline `style` on the rendered badge, and `[data-theme="dark"] .rev-type-badge[data-type="..."]` overrides in `layouts/app.blade.php`. When adding a new type, both must be updated, as well as the `in:` validation rule in `RevisionController`.
+
 ### Key Files
 | Path | Purpose |
 |------|---------|
@@ -118,6 +133,9 @@ The WebAuthn scope name is `whereEnabled()` — **not** `enabled()`. Use `$user-
 | `database/seeders/RolesSeeder.php` | Seeds all 7 roles |
 | `database/seeders/SystemAdminSeeder.php` | Creates `RGAdmin` user |
 | `DEVELOPER_DIARY.txt` | Freeform change log for the developer; entries go here before publishing to `version_changelog` table |
+
+### public/diary.html
+Standalone animated showcase (`public/diary.html`, kein Auth nötig → direkt via `http://localhost:8084/diary.html`). Zeigt die Entstehungsgeschichte der App als animierte UI-Demo. Keine Laravel-Abhängigkeiten — reine HTML/CSS/JS-Datei. Nicht in git-relevante Build-Prozesse eingebunden.
 
 ### Storage Permissions
 PHP-FPM runs as `www-data`. After any `docker compose up`, if the `storage/` directory is freshly mounted from the host (owned by root), run:

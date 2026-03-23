@@ -18,15 +18,15 @@
         </div>
         <div class="card-body">
             @if($user->roles->isEmpty())
-                <p style="color:#94A3B8; font-size:.875rem;">Keine globalen Rollen zugewiesen.</p>
+                <p style="color:var(--t-text-sub); font-size:.875rem;">Keine globalen Rollen zugewiesen.</p>
             @else
                 <div style="display:flex; flex-direction:column; gap:.75rem;">
                     @foreach($user->roles as $role)
-                    <div style="display:flex; align-items:flex-start; gap:.75rem; padding:.75rem 1rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; border-left:3px solid var(--c-accent1);">
+                    <div style="display:flex; align-items:flex-start; gap:.75rem; padding:.75rem 1rem; background:var(--t-surface2); border:1px solid var(--t-border); border-radius:8px; border-left:3px solid var(--c-accent1);">
                         <div style="flex:1;">
-                            <div style="font-size:.875rem; font-weight:700; color:#1E293B;">{{ $role->display_name }}</div>
+                            <div style="font-size:.875rem; font-weight:700; color:var(--t-text);">{{ $role->display_name }}</div>
                             @if($role->description)
-                            <div style="font-size:.78rem; color:#64748B; margin-top:.2rem;">{{ $role->description }}</div>
+                            <div style="font-size:.78rem; color:var(--t-text-muted); margin-top:.2rem;">{{ $role->description }}</div>
                             @endif
                         </div>
                         <span class="badge badge-cyan">global</span>
@@ -50,17 +50,17 @@
         </div>
         <div class="card-body">
             @if($user->projectRoles->isEmpty())
-                <p style="color:#94A3B8; font-size:.875rem;">Keine Projektrollen zugewiesen.</p>
+                <p style="color:var(--t-text-sub); font-size:.875rem;">Keine Projektrollen zugewiesen.</p>
             @else
                 <div style="display:flex; flex-direction:column; gap:.75rem;">
                     @foreach($user->projectRoles as $pur)
-                    <div style="display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; background:#F8FAFC; border:1px solid #E2E8F0; border-radius:8px; border-left:3px solid var(--c-accent2);">
+                    <div style="display:flex; align-items:center; justify-content:space-between; padding:.75rem 1rem; background:var(--t-surface2); border:1px solid var(--t-border); border-radius:8px; border-left:3px solid var(--c-accent2);">
                         <div>
-                            <div style="font-size:.875rem; font-weight:700; color:#1E293B;">
+                            <div style="font-size:.875rem; font-weight:700; color:var(--t-text);">
                                 {{ $pur->project->name ?? '–' }}
                             </div>
                             @if($pur->project?->description)
-                            <div style="font-size:.75rem; color:#94A3B8; margin-top:.1rem;">
+                            <div style="font-size:.75rem; color:var(--t-text-sub); margin-top:.1rem;">
                                 {{ Str::limit($pur->project->description, 60) }}
                             </div>
                             @endif

@@ -10,12 +10,12 @@
 
 @php
 $typeConfig = [
-    'update'   => ['label' => 'Update',         'bg' => '#DBEAFE', 'color' => '#1D4ED8', 'border' => '#93C5FD'],
-    'change'   => ['label' => 'Änderung',       'bg' => '#FEF3C7', 'color' => '#B45309', 'border' => '#FCD34D'],
-    'fix'      => ['label' => 'Fehlerbehebung', 'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
-    'release'  => ['label' => 'Release',        'bg' => '#DCFCE7', 'color' => '#15803D', 'border' => '#86EFAC'],
-    'hotfix'   => ['label' => 'Hotfix',         'bg' => '#FEE2E2', 'color' => '#DC2626', 'border' => '#FCA5A5'],
-    'replaced' => ['label' => 'Ersetzt',        'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1'],
+    'update'   => ['label' => 'Update',         'bg' => 'rgba(59,130,246,.14)',  'color' => '#3B82F6', 'border' => 'rgba(59,130,246,.35)'],
+    'change'   => ['label' => 'Änderung',       'bg' => 'rgba(234,179,8,.14)',   'color' => '#CA8A04', 'border' => 'rgba(234,179,8,.35)'],
+    'fix'      => ['label' => 'Fehlerbehebung', 'bg' => 'rgba(239,68,68,.1)',    'color' => '#EF4444', 'border' => 'rgba(239,68,68,.35)'],
+    'release'  => ['label' => 'Release',        'bg' => 'rgba(34,197,94,.13)',   'color' => '#22C55E', 'border' => 'rgba(34,197,94,.35)'],
+    'hotfix'   => ['label' => 'Hotfix',         'bg' => 'rgba(239,68,68,.1)',    'color' => '#EF4444', 'border' => 'rgba(239,68,68,.35)'],
+    'replaced' => ['label' => 'Ersetzt',        'bg' => 'rgba(148,163,184,.12)', 'color' => '#94A3B8', 'border' => 'rgba(148,163,184,.3)'],
 ];
 $savedView            = auth()->user()->revision_view ?? 'journal';
 $predExpanded         = auth()->user()->predecessors_expanded ?? false;
@@ -25,7 +25,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
 <div class="card" style="margin-bottom:1.5rem;">
     <div class="card-header">
         <div style="display:flex; align-items:center; gap:.75rem;">
-            <h2 style="font-size:1.05rem; font-weight:700; color:#1E293B;">{{ $project->name }}</h2>
+            <h2 style="font-size:1.05rem; font-weight:700; color:var(--t-text);">{{ $project->name }}</h2>
             @if($project->is_active)
                 <span class="badge badge-green">Aktiv</span>
             @else
@@ -42,7 +42,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
         @endif
     </div>
     @if($project->description)
-    <div style="padding:.85rem 1.5rem; font-size:.875rem; color:#64748B; line-height:1.6;">
+    <div style="padding:.85rem 1.5rem; font-size:.875rem; color:var(--t-text-muted); line-height:1.6;">
         {{ $project->description }}
     </div>
     @endif
@@ -83,33 +83,33 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input id="rev-search" type="search" placeholder="Suche… oder *fix *neu *hotfix für ODER-Verknüpfung"
-               style="width:100%; padding:.5rem .75rem .5rem 2.1rem; border:1px solid #E2E8F0; border-radius:7px;
-                      font-size:.85rem; color:#1E293B; outline:none; box-sizing:border-box;"
+               style="width:100%; padding:.5rem .75rem .5rem 2.1rem; border:1px solid var(--t-border); border-radius:7px;
+                      font-size:.85rem; color:var(--t-input-text); background:var(--t-input-bg); outline:none; box-sizing:border-box;"
                onfocus="this.style.borderColor='var(--c-accent1)'"
-               onblur="this.style.borderColor='#E2E8F0'">
+               onblur="this.style.borderColor=getComputedStyle(document.documentElement).getPropertyValue('--t-border').trim()">
     </div>
 
     {{-- Type filter badges --}}
     <div style="display:flex; flex-wrap:wrap; gap:.4rem;">
         <button type="button" class="type-filter-btn active-filter" data-type=""
-                style="padding:.3rem .75rem; border-radius:6px; border:1px solid #CBD5E1;
-                       background:#F1F5F9; font-size:.75rem; font-weight:600; color:#64748B; cursor:pointer;">
+                style="padding:.3rem .75rem; border-radius:6px; border:1px solid var(--t-border);
+                       background:var(--t-surface2); font-size:.75rem; font-weight:600; color:var(--t-text-muted); cursor:pointer;">
             Alle
         </button>
         @foreach($typeConfig as $typeKey => $cfg)
         <button type="button" class="type-filter-btn" data-type="{{ $typeKey }}"
                 style="padding:.3rem .75rem; border-radius:6px; border:1px solid {{ $cfg['border'] }};
-                       background:#fff; font-size:.75rem; font-weight:600; color:{{ $cfg['color'] }}; cursor:pointer; opacity:.65;">
+                       background:var(--t-surface); font-size:.75rem; font-weight:600; color:{{ $cfg['color'] }}; cursor:pointer; opacity:.65;">
             {{ $cfg['label'] }}
         </button>
         @endforeach
     </div>
 
     {{-- View toggle --}}
-    <div style="display:flex; border:1px solid #E2E8F0; border-radius:7px; overflow:hidden; flex-shrink:0;">
+    <div style="display:flex; border:1px solid var(--t-border); border-radius:7px; overflow:hidden; flex-shrink:0; background:var(--t-surface);">
         <button id="btn-journal" type="button" onclick="setView('journal')"
                 style="padding:.45rem .85rem; border:none; cursor:pointer; font-size:.8rem; font-weight:600;
-                       display:flex; align-items:center; gap:.4rem; transition:background .15s;">
+                       display:flex; align-items:center; gap:.4rem; transition:background .15s; background:transparent; color:var(--t-text-muted);">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
                 <line x1="8" y1="18" x2="21" y2="18"/>
@@ -120,8 +120,8 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
             Journal
         </button>
         <button id="btn-list" type="button" onclick="setView('list')"
-                style="padding:.45rem .85rem; border:none; border-left:1px solid #E2E8F0; cursor:pointer; font-size:.8rem; font-weight:600;
-                       display:flex; align-items:center; gap:.4rem; transition:background .15s;">
+                style="padding:.45rem .85rem; border:none; border-left:1px solid var(--t-border); cursor:pointer; font-size:.8rem; font-weight:600;
+                       display:flex; align-items:center; gap:.4rem; transition:background .15s; background:transparent; color:var(--t-text-muted);">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                 <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/>
                 <line x1="3" y1="18" x2="21" y2="18"/>
@@ -157,6 +157,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
             $predecessorChain[] = $pred;
             $chainId = $pred->id;
         }
+        if (count($predecessorChain) > 0) { $entryTypes[] = 'replaced'; }
     @endphp
     <div class="rev-item" id="journal-rev-{{ $revision->id }}"
          data-version="{{ $revision->version }}"
@@ -169,18 +170,18 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
 
         {{-- Linke Spalte: Linie + Dot --}}
         <div style="width:40px; flex-shrink:0; display:flex; flex-direction:column; align-items:center;">
-            <div class="tl-top"    style="width:2px; flex:1; background:#E2E8F0;"></div>
+            <div class="tl-top"    style="width:2px; flex:1; background:var(--t-border);"></div>
             <div class="tl-dot"    style="width:12px; height:12px; border-radius:50%; flex-shrink:0;
-                        background:#fff; border:2px solid #CBD5E1; box-shadow:none; z-index:1;"></div>
-            <div class="tl-bottom" style="width:2px; flex:1; background:#E2E8F0;"></div>
+                        background:var(--t-surface2); border:2px solid var(--t-border); box-shadow:none; z-index:1;"></div>
+            <div class="tl-bottom" style="width:2px; flex:1; background:var(--t-border);"></div>
         </div>
 
         {{-- Eintrag --}}
         <div style="flex:1; padding-bottom:1.5rem; padding-left:.75rem; padding-top:.5rem;">
-        <div class="rev-card" style="background:#fff; border:1px solid #E2E8F0; border-radius:10px; box-shadow:none;">
+        <div class="rev-card" style="background:var(--t-surface); border:1px solid var(--t-border); border-radius:10px; box-shadow:none;">
 
             {{-- Header --}}
-            <div style="padding:.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border-bottom:1px solid #F1F5F9;">
+            <div style="padding:.85rem 1.25rem; display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; border-bottom:1px solid var(--t-border2);">
                 <div style="display:flex; align-items:center; gap:.5rem; flex-wrap:wrap;">
                     {{-- Version --}}
                     <span class="version-badge" style="font-size:.75rem; font-weight:700; color:#fff;
@@ -191,7 +192,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                     {{-- Ersetzt-Icon --}}
                     @if(count($predecessorChain) > 0)
                         <span style="display:inline-flex; align-items:center; padding:.25rem .4rem; border-radius:6px;
-                                     background:#F1F5F9; border:1px solid #CBD5E1;" title="Ersetzt">
+                                     background:var(--t-surface2); border:1px solid var(--t-border);" title="Ersetzt">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.5">
                                 <polyline points="1 4 1 10 7 10"/>
                                 <path d="M3.51 15a9 9 0 1 0 .49-4.78"/>
@@ -199,18 +200,18 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                         </span>
                     @endif
                     {{-- Trennstrich --}}
-                    <span style="width:1px; height:16px; background:#E2E8F0; flex-shrink:0;"></span>
+                    <span style="width:1px; height:16px; background:var(--t-border); flex-shrink:0;"></span>
                     {{-- Typ-Badges --}}
                     @foreach($revision->typesList as $type)
                         @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                        <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                        <span class="rev-type-badge" data-type="{{ $type }}" style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
                                      font-size:.72rem; font-weight:600;
                                      background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
                             {{ $tc['label'] }}
                         </span>
                     @endforeach
                     {{-- Titel --}}
-                    <span style="font-size:.9rem; font-weight:700; color:#1E293B; margin-left:.25rem;">{{ $revision->title }}</span>
+                    <span style="font-size:.9rem; font-weight:700; color:var(--t-text); margin-left:.25rem;">{{ $revision->title }}</span>
                 </div>
                 <div style="display:flex; align-items:center; gap:.75rem; flex-shrink:0;">
                     @if(count($predecessorChain) > 0)
@@ -230,9 +231,9 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                     </button>
                     @endif
                     <div style="text-align:right;">
-                        <div style="font-size:.75rem; color:#94A3B8;">{{ $revision->created_at->format('d.m.Y H:i') }}</div>
+                        <div style="font-size:.75rem; color:var(--t-text-muted);">{{ $revision->created_at->format('d.m.Y H:i') }}</div>
                         @if($revision->author)
-                        <div style="font-size:.72rem; color:#CBD5E1;">
+                        <div style="font-size:.72rem; color:var(--t-text-sub);">
                             {{ $revision->author->vorname }} {{ $revision->author->nachname }}
                         </div>
                         @endif
@@ -246,40 +247,50 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
 
             {{-- Inhalts-Einträge --}}
             <div style="padding:.85rem 1.25rem; display:flex; flex-direction:column; gap:.6rem;">
-                @foreach($revision->entries as $entry)
-                    @php $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                    <div style="display:flex; gap:.75rem; align-items:flex-start;">
-                        <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                @foreach(collect($revision->entries)->sortBy(fn($e) => !empty($e['removed']) ? 1 : 0)->values() as $entry)
+                    @php
+                        $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1'];
+                        $isRemoved = !empty($entry['removed']);
+                    @endphp
+                    <div style="display:flex; gap:.75rem; align-items:flex-start;
+                                {{ $isRemoved ? 'background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.2); border-left:3px solid rgba(239,68,68,.45); border-radius:6px; padding:.35rem .6rem;' : '' }}">
+                        <span class="rev-type-badge" data-type="{{ $entry['type'] }}" style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
                                      font-size:.7rem; font-weight:600; flex-shrink:0; margin-top:.1rem;
                                      background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
                             {{ $tc['label'] }}
                         </span>
-                        <span style="font-size:.875rem; color:#475569; line-height:1.65;">{{ $entry['content'] }}</span>
+                        <span style="font-size:.875rem; line-height:1.65; flex:1;
+                                     color:var(--t-text-sub);
+                                     {{ $isRemoved ? 'text-decoration:line-through; text-decoration-color:rgba(239,68,68,.6);' : 'color:var(--t-text-muted);' }}">{{ $entry['content'] }}</span>
+                        @if($isRemoved)
+                            <span style="flex-shrink:0; align-self:center; font-size:.68rem; font-weight:600; padding:.1rem .45rem; border-radius:4px;
+                                         background:rgba(239,68,68,.1); color:#DC2626; border:1px solid rgba(239,68,68,.25); white-space:nowrap;">Gestrichen</span>
+                        @endif
                     </div>
                 @endforeach
             </div>
 
             {{-- Vorgänger-Kette (ausgeklappt) --}}
             @if(count($predecessorChain) > 0)
-            <div id="pred-{{ $revision->id }}" style="display:{{ $predExpanded ? 'block' : 'none' }}; border-top:1px solid #FEF3C7; border-radius:0 0 10px 10px; overflow:hidden;">
+            <div id="pred-{{ $revision->id }}" style="display:{{ $predExpanded ? 'block' : 'none' }}; border-top:1px solid rgba(245,158,11,.25); border-radius:0 0 10px 10px; overflow:hidden; box-shadow:inset 3px 0 0 rgba(245,158,11,.55);">
                 @foreach($predecessorChain as $pred)
-                <div id="pred-entry-{{ $pred->id }}" style="background:#FFFBEB; padding:.85rem 1.25rem;
-                            {{ !$loop->last ? 'border-bottom:1px solid #FEF3C7;' : '' }}">
+                <div id="pred-entry-{{ $pred->id }}" style="background:rgba(245,158,11,.06); padding:.85rem 1.25rem;
+                            {{ !$loop->last ? 'border-bottom:1px solid rgba(245,158,11,.2);' : '' }}">
                     {{-- Predecessor header --}}
                     <div style="display:flex; align-items:center; gap:.6rem; margin-bottom:.65rem; flex-wrap:wrap;">
-                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#B45309" stroke-width="2.5" style="flex-shrink:0;">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--c-accent2)" stroke-width="2.5" style="flex-shrink:0;">
                             <polyline points="1 4 1 10 7 10"/>
                             <path d="M3.51 15a9 9 0 1 0 .49-4.78"/>
                         </svg>
-                        <span style="font-size:.72rem; font-weight:700; color:#B45309; text-transform:uppercase; letter-spacing:.05em;">
+                        <span style="font-size:.72rem; font-weight:700; color:var(--c-accent2); text-transform:uppercase; letter-spacing:.05em;">
                             {{ $loop->first ? 'Direkte Vorgänger-Revision' : 'Ältere Vorgänger-Revision' }}
                         </span>
-                        <span style="font-size:.72rem; font-weight:700; color:#fff; background:#B45309;
+                        <span style="font-size:.72rem; font-weight:700; color:#fff; background:var(--c-accent2);
                                      padding:.15rem .5rem; border-radius:4px; letter-spacing:.04em;">
                             v{{ $pred->version }}
                         </span>
-                        <span style="font-size:.75rem; color:#92400E; font-weight:600;">{{ $pred->title }}</span>
-                        <span style="font-size:.72rem; color:#B45309; margin-left:auto;">
+                        <span style="font-size:.75rem; color:var(--c-accent2); font-weight:600;">{{ $pred->title }}</span>
+                        <span style="font-size:.72rem; color:var(--c-accent2); margin-left:auto;">
                             {{ $pred->created_at->format('d.m.Y H:i') }}
                             @if($pred->author)
                                 &nbsp;· {{ $pred->author->vorname }} {{ $pred->author->nachname }}
@@ -288,15 +299,24 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                     </div>
                     {{-- Predecessor entries --}}
                     <div style="display:flex; flex-direction:column; gap:.5rem;">
-                        @foreach($pred->entries as $entry)
-                            @php $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                            <div style="display:flex; gap:.75rem; align-items:flex-start;">
-                                <span style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
+                        @foreach(collect($pred->entries)->sortBy(fn($e) => !empty($e['removed']) ? 1 : 0)->values() as $entry)
+                            @php
+                                $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1'];
+                                $isRemoved = !empty($entry['removed']);
+                            @endphp
+                            <div style="display:flex; gap:.75rem; align-items:flex-start;
+                                        {{ $isRemoved ? 'background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.2); border-left:3px solid rgba(239,68,68,.45); border-radius:6px; padding:.35rem .6rem;' : '' }}">
+                                <span class="rev-type-badge" data-type="{{ $entry['type'] }}" style="display:inline-flex; align-items:center; padding:.2rem .6rem; border-radius:6px;
                                              font-size:.7rem; font-weight:600; flex-shrink:0; margin-top:.1rem;
                                              background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
                                     {{ $tc['label'] }}
                                 </span>
-                                <span style="font-size:.85rem; color:#78716C; line-height:1.65;">{{ $entry['content'] }}</span>
+                                <span style="font-size:.85rem; line-height:1.65; flex:1;
+                                             {{ $isRemoved ? 'text-decoration:line-through; text-decoration-color:rgba(239,68,68,.6); color:var(--t-text-sub);' : 'color:var(--t-text-muted);' }}">{{ $entry['content'] }}</span>
+                                @if($isRemoved)
+                                    <span style="flex-shrink:0; align-self:center; font-size:.68rem; font-weight:600; padding:.1rem .45rem; border-radius:4px;
+                                                 background:rgba(239,68,68,.1); color:#DC2626; border:1px solid rgba(239,68,68,.25); white-space:nowrap;">Gestrichen</span>
+                                @endif
                             </div>
                         @endforeach
                     </div>
@@ -338,6 +358,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                         $chainId = $pred->id;
                     }
                     $hasPred = count($predecessorChain) > 0;
+                    if ($hasPred) { $entryTypes[] = 'replaced'; }
                 @endphp
                 <tr class="rev-item"
                     data-version="{{ $revision->version }}"
@@ -347,7 +368,7 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                     data-date="{{ $revision->created_at->format('d.m.Y') }}"
                     data-content="{{ strtolower($allContent) }}"
                     data-pred-row="pred-list-{{ $revision->id }}">
-                    <td>
+                    <td style="box-shadow:inset 3px 0 0 rgba(6,182,212,.6);">
                         <div style="display:flex; align-items:center; gap:.4rem; flex-wrap:wrap;">
                             <span class="version-badge" style="font-size:.75rem; font-weight:700; color:#fff; background:#94A3B8;
                                          padding:.2rem .55rem; border-radius:5px; letter-spacing:.04em;">
@@ -355,17 +376,17 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                             </span>
                             @if($hasPred)
                                 <span style="display:inline-flex; align-items:center; padding:.25rem .4rem; border-radius:5px;
-                                             background:#F1F5F9; border:1px solid #CBD5E1;" title="Ersetzt">
+                                             background:var(--t-surface2); border:1px solid var(--t-border);" title="Ersetzt">
                                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2.5">
                                         <polyline points="1 4 1 10 7 10"/>
                                         <path d="M3.51 15a9 9 0 1 0 .49-4.78"/>
                                     </svg>
                                 </span>
                             @endif
-                            <span style="width:1px; height:14px; background:#E2E8F0; flex-shrink:0;"></span>
+                            <span style="width:1px; height:14px; background:var(--t-border); flex-shrink:0;"></span>
                             @foreach($revision->typesList as $type)
                                 @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                                <span style="display:inline-flex; align-items:center; padding:.15rem .5rem; border-radius:5px;
+                                <span class="rev-type-badge" data-type="{{ $type }}" style="display:inline-flex; align-items:center; padding:.15rem .5rem; border-radius:5px;
                                              font-size:.7rem; font-weight:600;
                                              background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
                                     {{ $tc['label'] }}
@@ -376,15 +397,15 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                     <td>
                         <button type="button" onclick="jumpToRevision({{ $revision->id }})"
                                 style="background:none; border:none; padding:0; cursor:pointer; font-weight:600;
-                                       color:#1E293B; font-size:.875rem; text-align:left; font-family:inherit;
+                                       color:var(--t-text); font-size:.875rem; text-align:left; font-family:inherit;
                                        text-decoration:underline; text-decoration-color:transparent; transition:text-decoration-color .15s;"
                                 onmouseover="this.style.textDecorationColor='#06B6D4'; this.style.color='var(--c-accent1)';"
-                                onmouseout="this.style.textDecorationColor='transparent'; this.style.color='#1E293B';">
+                                onmouseout="this.style.textDecorationColor='transparent'; this.style.color='var(--t-text)';">
                             {{ $revision->title }}
                         </button>
                     </td>
-                    <td style="font-size:.82rem; color:#64748B;">{{ $revision->created_at->format('d.m.Y H:i') }}</td>
-                    <td style="font-size:.82rem; color:#64748B;">{{ $authorName ?: '–' }}</td>
+                    <td style="font-size:.82rem; color:var(--t-text-muted);">{{ $revision->created_at->format('d.m.Y H:i') }}</td>
+                    <td style="font-size:.82rem; color:var(--t-text-muted);">{{ $authorName ?: '–' }}</td>
                     <td style="white-space:nowrap;">
                         <div style="display:flex; align-items:center; gap:.5rem; justify-content:flex-end;">
                             @if($hasPred)
@@ -416,17 +437,17 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                 @php
                     $predAuthor = $pred->author ? trim($pred->author->vorname . ' ' . $pred->author->nachname) : '';
                 @endphp
-                <tr class="pred-list-row pred-list-{{ $revision->id }}" style="display:{{ $predExpanded ? 'table-row' : 'none' }}; background:#FFFBEB;">
-                    <td style="border-left:3px solid #FCD34D;">
+                <tr class="pred-list-row pred-list-{{ $revision->id }}" style="display:{{ $predExpanded ? 'table-row' : 'none' }}; background:rgba(245,158,11,.07);">
+                    <td style="box-shadow:inset 3px 0 0 rgba(245,158,11,.5);">
                         <div style="display:flex; align-items:center; gap:.4rem; flex-wrap:wrap; padding-left:.25rem;">
                             <span style="font-size:.75rem; font-weight:700; color:#fff; background:#B45309;
                                          padding:.2rem .55rem; border-radius:5px; letter-spacing:.04em;">
                                 v{{ $pred->version }}
                             </span>
-                            <span style="width:1px; height:14px; background:#FCD34D; flex-shrink:0;"></span>
+                            <span style="width:1px; height:14px; background:rgba(245,158,11,.5); flex-shrink:0;"></span>
                             @foreach($pred->typesList as $type)
-                                @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                                <span style="display:inline-flex; align-items:center; padding:.15rem .5rem; border-radius:5px;
+                                @php $tc = $typeConfig[$type] ?? ['label' => $type, 'bg' => 'rgba(148,163,184,.12)', 'color' => '#94A3B8', 'border' => 'rgba(148,163,184,.3)']; @endphp
+                                <span class="rev-type-badge" data-type="{{ $type }}" style="display:inline-flex; align-items:center; padding:.15rem .5rem; border-radius:5px;
                                              font-size:.7rem; font-weight:600;
                                              background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
                                     {{ $tc['label'] }}
@@ -438,28 +459,15 @@ $predExpanded         = auth()->user()->predecessors_expanded ?? false;
                         <button type="button"
                                 onclick="jumpToPredecessor({{ $revision->id }}, {{ $pred->id }})"
                                 style="background:none; border:none; padding:0; cursor:pointer; font-weight:600;
-                                       color:#92400E; font-size:.875rem; text-align:left; font-family:inherit;
+                                       color:var(--c-accent2); font-size:.875rem; text-align:left; font-family:inherit;
                                        text-decoration:underline; text-decoration-color:transparent; transition:text-decoration-color .15s;"
-                                onmouseover="this.style.textDecorationColor='#B45309';"
+                                onmouseover="this.style.textDecorationColor='var(--c-accent2)';"
                                 onmouseout="this.style.textDecorationColor='transparent';">
                             {{ $pred->title }}
                         </button>
-                        <div style="display:flex; flex-direction:column; gap:.3rem; margin-top:.4rem;">
-                            @foreach($pred->entries as $entry)
-                                @php $tc = $typeConfig[$entry['type']] ?? ['label' => $entry['type'], 'bg' => '#F1F5F9', 'color' => '#64748B', 'border' => '#CBD5E1']; @endphp
-                                <div style="display:flex; gap:.5rem; align-items:flex-start;">
-                                    <span style="display:inline-flex; align-items:center; padding:.1rem .45rem; border-radius:5px; flex-shrink:0; margin-top:.1rem;
-                                                 font-size:.68rem; font-weight:600;
-                                                 background:{{ $tc['bg'] }}; color:{{ $tc['color'] }}; border:1px solid {{ $tc['border'] }};">
-                                        {{ $tc['label'] }}
-                                    </span>
-                                    <span style="font-size:.8rem; color:#78716C; line-height:1.55;">{{ $entry['content'] }}</span>
-                                </div>
-                            @endforeach
-                        </div>
                     </td>
-                    <td style="font-size:.82rem; color:#B45309;">{{ $pred->created_at->format('d.m.Y H:i') }}</td>
-                    <td style="font-size:.82rem; color:#B45309;">{{ $predAuthor ?: '–' }}</td>
+                    <td style="font-size:.82rem; color:var(--c-accent2);">{{ $pred->created_at->format('d.m.Y H:i') }}</td>
+                    <td style="font-size:.82rem; color:var(--c-accent2);">{{ $predAuthor ?: '–' }}</td>
                     <td></td>
                 </tr>
                 @endforeach
@@ -490,8 +498,12 @@ function jumpToPredecessor(parentId, predId) {
         const entry = document.getElementById('pred-entry-' + predId);
         if (entry) {
             entry.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            entry.classList.add('pred-highlight');
-            setTimeout(() => entry.classList.remove('pred-highlight'), 1800);
+            entry.style.position = 'relative';
+            const ov = document.createElement('div');
+            ov.style.cssText = 'position:absolute;inset:0;background:rgba(245,158,11,.45);pointer-events:none;';
+            ov.classList.add('rev-overlay-pulse');
+            entry.appendChild(ov);
+            setTimeout(() => { ov.remove(); entry.style.position = ''; }, 1600);
         }
     }, 150);
 }
@@ -505,8 +517,17 @@ function jumpToRevision(id) {
         target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const card = target.querySelector('.rev-card');
         if (card) {
-            card.classList.add('rev-highlight');
-            setTimeout(() => card.classList.remove('rev-highlight'), 1800);
+            const predPanel = document.getElementById('pred-' + id);
+            const predVisible = predPanel && predPanel.style.display !== 'none';
+            const predH = predVisible ? predPanel.offsetHeight : 0;
+            const ov = document.createElement('div');
+            const br = predVisible ? '10px 10px 0 0' : '10px';
+            ov.style.cssText = 'position:absolute;top:0;left:0;right:0;background:rgba(6,182,212,.38);pointer-events:none;border-radius:' + br + ';';
+            ov.style.height = 'calc(100% - ' + predH + 'px)';
+            ov.classList.add('rev-overlay-pulse');
+            card.style.position = 'relative';
+            card.appendChild(ov);
+            setTimeout(() => { ov.remove(); card.style.position = ''; }, 1000);
         }
     }, 150);
 }
@@ -533,10 +554,10 @@ function setView(v) {
 
     const btnJ = document.getElementById('btn-journal');
     const btnL = document.getElementById('btn-list');
-    btnJ.style.background = (v === 'journal') ? 'var(--c-accent1)' : '#fff';
-    btnJ.style.color      = (v === 'journal') ? '#fff' : '#475569';
-    btnL.style.background = (v === 'list')    ? 'var(--c-accent1)' : '#fff';
-    btnL.style.color      = (v === 'list')    ? '#fff' : '#475569';
+    btnJ.style.background = (v === 'journal') ? 'var(--c-accent1)' : 'transparent';
+    btnJ.style.color      = (v === 'journal') ? '#fff' : 'var(--t-text)';
+    btnL.style.background = (v === 'list')    ? 'var(--c-accent1)' : 'transparent';
+    btnL.style.color      = (v === 'list')    ? '#fff' : 'var(--t-text)';
 
     fetch(SAVE_URL, {
         method: 'POST',
@@ -646,22 +667,28 @@ function updateJournalTimeline() {
         const card       = item.querySelector('.rev-card');
         const badge      = item.querySelector('.version-badge');
 
-        topLine.style.background    = (i === 0)              ? 'transparent' : '#E2E8F0';
-        bottomLine.style.background = (i === items.length-1) ? 'transparent' : '#E2E8F0';
+        const isDark   = document.documentElement.dataset.theme === 'dark';
+        const lineClr  = isDark ? '#06B6D4'             : '#94A3B8';
+        const dotBg    = isDark ? '#0B1520'             : '#fff';
+        const dotBdr   = isDark ? '#06B6D4'             : '#CBD5E1';
+        const cardBdr  = isDark ? 'rgba(6,182,212,.35)' : '#E2E8F0';
+
+        topLine.style.background    = (i === 0)              ? 'transparent' : lineClr;
+        bottomLine.style.background = (i === items.length-1) ? 'transparent' : lineClr;
 
         if (i === 0) {
             dot.style.background  = 'var(--c-accent1)';
             dot.style.borderColor = 'var(--c-accent1)';
-            dot.style.boxShadow   = '0 0 0 3px rgba(6,182,212,.15)';
-            card.style.borderLeft = '3px solid var(--c-accent1)';
-            card.style.boxShadow  = '0 2px 8px rgba(0,0,0,.06)';
+            dot.style.boxShadow   = '0 0 0 3px rgba(6,182,212,.25)';
+            card.style.borderLeft = '';
+            card.style.boxShadow  = 'inset 3px 0 0 var(--c-accent1), ' + (isDark ? '0 2px 12px rgba(6,182,212,.08)' : '0 2px 8px rgba(0,0,0,.06)');
             badge.style.background = 'var(--c-accent1)';
         } else {
-            dot.style.background  = '#fff';
-            dot.style.borderColor = '#CBD5E1';
+            dot.style.background  = dotBg;
+            dot.style.borderColor = dotBdr;
             dot.style.boxShadow   = 'none';
-            card.style.borderLeft = '1px solid #E2E8F0';
-            card.style.boxShadow  = 'none';
+            card.style.borderLeft = '';
+            card.style.boxShadow  = 'inset 3px 0 0 rgba(6,182,212,.45)';
             badge.style.background = '#94A3B8';
         }
     });
@@ -672,10 +699,10 @@ window.addEventListener('DOMContentLoaded', () => {
     const v = currentView;
     const btnJ = document.getElementById('btn-journal');
     const btnL = document.getElementById('btn-list');
-    btnJ.style.background = (v === 'journal') ? 'var(--c-accent1)' : '#fff';
-    btnJ.style.color      = (v === 'journal') ? '#fff' : '#475569';
-    btnL.style.background = (v === 'list')    ? 'var(--c-accent1)' : '#fff';
-    btnL.style.color      = (v === 'list')    ? '#fff' : '#475569';
+    btnJ.style.background = (v === 'journal') ? 'var(--c-accent1)' : 'transparent';
+    btnJ.style.color      = (v === 'journal') ? '#fff' : 'var(--t-text)';
+    btnL.style.background = (v === 'list')    ? 'var(--c-accent1)' : 'transparent';
+    btnL.style.color      = (v === 'list')    ? '#fff' : 'var(--t-text)';
     updateJournalTimeline();
     updateListFirstBadge();
 });
@@ -697,13 +724,30 @@ window.addEventListener('DOMContentLoaded', () => {
     border-radius: 10px;
 }
 @keyframes predHighlight {
-    0%   { background: #FFFBEB; }
-    15%  { background: #FDE68A; }
-    60%  { background: #FEF3C7; }
-    100% { background: #FFFBEB; }
+    0%,100%      { background: #FFFBEB; }
+    10%, 43%     { background: #FDE68A; }
+    27%, 60%     { background: #FFFBEB; }
+    76%          { background: #FDE68A; }
 }
 .pred-highlight {
-    animation: predHighlight 1.6s ease-out forwards;
+    animation: predHighlight 1.5s ease-in-out forwards;
+}
+@keyframes revOverlayPulse {
+    0%,100% { opacity: 0; }
+    15%, 65% { opacity: 1; }
+    40%, 90% { opacity: 0; }
+}
+.rev-overlay-pulse {
+    animation: revOverlayPulse 0.9s ease-in-out forwards;
+}
+@keyframes revCardHighlight {
+    0%   { background: rgba(6,182,212,0); }
+    15%  { background: rgba(6,182,212,.18); }
+    60%  { background: rgba(6,182,212,.08); }
+    100% { background: rgba(6,182,212,0); }
+}
+.rev-card-highlight {
+    animation: revCardHighlight 1.6s ease-out forwards;
 }
 </style>
 

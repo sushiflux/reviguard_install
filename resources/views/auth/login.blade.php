@@ -67,42 +67,39 @@
             opacity: .5;
         }
 
-        /* Logo */
-        .logo {
+        /* Header block: Logo links, Text rechts */
+        .login-header {
             display: flex;
-            align-items: center;
-            gap: .75rem;
-            margin-bottom: 3rem;
+            align-items: stretch;
+            gap: 1.25rem;
+            margin-bottom: 2.5rem;
         }
 
         .logo-icon {
-            width: 42px;
-            height: 42px;
-            background: linear-gradient(135deg, var(--c-accent1), var(--c-secondary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 90px;
+            flex-shrink: 0;
+            border-radius: 14px;
+            overflow: hidden;
         }
 
-        .logo-icon svg { width: 24px; height: 24px; }
+        .logo-icon img { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-        .logo-text { line-height: 1.1; }
-        .logo-text .brand { font-size: 1.3rem; font-weight: 700; color: #fff; letter-spacing: .03em; }
-        .logo-text .sub   { font-size: .7rem; color: var(--c-accent1); letter-spacing: .12em; text-transform: uppercase; }
+        .header-text { display: flex; flex-direction: column; justify-content: space-between; }
+        .header-text .brand { font-size: 1.4rem; font-weight: 700; color: #fff; letter-spacing: .03em; line-height: 1.2; }
+        .header-text .sub   { font-size: .7rem; color: var(--c-accent1); letter-spacing: .12em; text-transform: uppercase; }
 
         /* Headline */
         .login-title {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             font-weight: 700;
             color: #fff;
-            margin-bottom: .4rem;
+            margin-bottom: .25rem;
         }
 
         .login-subtitle {
-            font-size: .875rem;
+            font-size: .82rem;
             color: var(--c-text-muted);
-            margin-bottom: 2.5rem;
+            margin-bottom: 0;
         }
 
         /* Form */
@@ -371,21 +368,17 @@
     ============================================================ --}}
     <div class="login-panel">
 
-        <div class="logo">
+        <div class="login-header">
             <div class="logo-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                    <polyline points="9 12 11 14 15 10"/>
-                </svg>
+                <img src="{{ asset('logo.png') }}" alt="ReviGuard Logo">
             </div>
-            <div class="logo-text">
+            <div class="header-text">
                 <div class="brand">ReviGuard</div>
                 <div class="sub">Revision Management</div>
+                <h1 class="login-title">Willkommen zurück</h1>
+                <p class="login-subtitle">Bitte melden Sie sich mit Ihren Zugangsdaten an.</p>
             </div>
         </div>
-
-        <h1 class="login-title">Willkommen zurück</h1>
-        <p class="login-subtitle">Bitte melden Sie sich mit Ihren Zugangsdaten an.</p>
 
         <form method="POST" action="{{ route('login') }}" novalidate>
             @csrf
@@ -451,7 +444,10 @@
 
         <div class="login-footer">
             <div class="version-info">
-                ReviGuard &nbsp;&bull;&nbsp; v1.0.0
+                ReviGuard &nbsp;&bull;&nbsp; v{{ env('APP_VERSION', '0.1.0') }}
+            </div>
+            <div class="version-info" style="margin-top: .4rem;">
+                &copy; {{ date('Y') }} ReviGuard. Alle Rechte vorbehalten.
             </div>
         </div>
     </div>

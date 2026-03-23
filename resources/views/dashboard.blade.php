@@ -14,7 +14,7 @@
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
         </svg>
         <input id="search" type="text" placeholder="Projekte suchen…"
-               style="width:100%; padding:.5rem .75rem .5rem 2.25rem; border:1px solid #E2E8F0; border-radius:6px; font-size:.875rem; outline:none; box-sizing:border-box;"
+               style="width:100%; padding:.5rem .75rem .5rem 2.25rem; border:1px solid var(--t-border); border-radius:6px; font-size:.875rem; outline:none; box-sizing:border-box; background:var(--t-input-bg); color:var(--t-input-text);"
                oninput="filterProjects()">
     </div>
 
@@ -28,7 +28,7 @@
     </div>
 
     {{-- View-Toggle --}}
-    <div style="display:flex; gap:.25rem; border:1px solid #E2E8F0; border-radius:6px; padding:2px; background:#F8FAFC;">
+    <div style="display:flex; gap:.25rem; border:1px solid var(--t-border); border-radius:6px; padding:2px; background:var(--t-surface2);">
         <button id="btn-tile" onclick="setView('tile')" title="Kachelansicht"
                 style="padding:.35rem .55rem; border:none; border-radius:5px; cursor:pointer; background:transparent; display:flex; align-items:center;">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -59,11 +59,11 @@
 {{-- Kein Projekt --}}
 @if($projects->isEmpty())
     <div class="card">
-        <div class="card-body" style="text-align:center; padding:4rem; color:#94A3B8;">
+        <div class="card-body" style="text-align:center; padding:4rem; color:var(--t-text-sub);">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="1.5" style="margin-bottom:1rem;">
                 <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
             </svg>
-            <div style="font-weight:600; color:#64748B;">Keine Projekte verfügbar</div>
+            <div style="font-weight:600; color:var(--t-text-muted);">Keine Projekte verfügbar</div>
             @if(auth()->user()->canCreateProjects())
                 <div style="font-size:.82rem; margin-top:.5rem;">
                     <a href="{{ route('projects.create') }}" style="color:var(--c-accent1);">Erstes Projekt anlegen</a>
@@ -83,27 +83,27 @@
         @foreach($projects as $project)
         <div class="proj-card"
              data-name="{{ strtolower($project->name) }}"
-             style="border:1px solid #E2E8F0; border-radius:10px; background:#fff;
+             style="border:1px solid var(--t-border); border-radius:10px; background:var(--t-surface);
                     border-top:3px solid {{ $project->is_active ? 'var(--c-accent1)' : '#CBD5E1' }};
                     transition:box-shadow .15s; display:flex; flex-direction:column;"
              onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.08)'"
              onmouseout="this.style.boxShadow='none'">
             <div style="padding:1.1rem 1.1rem .75rem;">
                 <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:.6rem;">
-                    <div style="font-size:.95rem; font-weight:700; color:#1E293B; line-height:1.3;">{{ $project->name }}</div>
+                    <div style="font-size:.95rem; font-weight:700; color:var(--t-text); line-height:1.3;">{{ $project->name }}</div>
                     @if($project->is_active)
                         <span class="badge badge-green" style="margin-left:.5rem; flex-shrink:0;">Aktiv</span>
                     @else
                         <span class="badge badge-gray" style="margin-left:.5rem; flex-shrink:0;">Inaktiv</span>
                     @endif
                 </div>
-                <div style="font-size:.78rem; color:#64748B; line-height:1.5; flex:1;">
+                <div style="font-size:.78rem; color:var(--t-text-muted); line-height:1.5; flex:1;">
                     {{ $project->description ? Str::limit($project->description, 80) : '–' }}
                 </div>
             </div>
-            <div style="margin-top:auto; padding:.65rem 1.1rem; border-top:1px solid #F1F5F9;
+            <div style="margin-top:auto; padding:.65rem 1.1rem; border-top:1px solid var(--t-border2);
                         display:flex; align-items:center; justify-content:space-between;">
-                <div style="font-size:.72rem; color:#94A3B8;">
+                <div style="font-size:.72rem; color:var(--t-text-sub);">
                     {{ $project->created_at->format('d.m.Y') }}
                 </div>
                 <div style="display:flex; gap:.35rem;">
@@ -138,8 +138,8 @@
                 <tbody id="list-body">
                     @foreach($projects as $project)
                     <tr class="proj-row" data-name="{{ strtolower($project->name) }}">
-                        <td style="font-weight:600; color:#1E293B;">{{ $project->name }}</td>
-                        <td style="color:#64748B; font-size:.85rem; max-width:360px;">{{ $project->description ? Str::limit($project->description, 100) : '–' }}</td>
+                        <td style="font-weight:600; color:var(--t-text);">{{ $project->name }}</td>
+                        <td style="color:var(--t-text-muted); font-size:.85rem; max-width:360px;">{{ $project->description ? Str::limit($project->description, 100) : '–' }}</td>
                         <td>
                             @if($project->is_active)
                                 <span class="badge badge-green">Aktiv</span>
@@ -147,7 +147,7 @@
                                 <span class="badge badge-gray">Inaktiv</span>
                             @endif
                         </td>
-                        <td style="font-size:.82rem; color:#94A3B8; white-space:nowrap;">{{ $project->created_at->format('d.m.Y') }}</td>
+                        <td style="font-size:.82rem; color:var(--t-text-sub); white-space:nowrap;">{{ $project->created_at->format('d.m.Y') }}</td>
                         <td style="text-align:right; white-space:nowrap;">
                             <a href="{{ route('projects.show', $project) }}" class="btn btn-ghost btn-sm">Öffnen</a>
                             @if(auth()->user()->canCreateProjects())
@@ -259,9 +259,9 @@ function updateViewButtons() {
     ['tile','list'].forEach(v => {
         const btn = document.getElementById('btn-'+v);
         if (btn) {
-            btn.style.background = currentView === v ? '#fff' : 'transparent';
+            btn.style.background = currentView === v ? 'var(--t-surface)' : 'transparent';
             btn.style.boxShadow  = currentView === v ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
-            btn.style.color      = currentView === v ? 'var(--c-secondary)' : '#94A3B8';
+            btn.style.color      = currentView === v ? 'var(--c-accent1)' : 'var(--t-text)';
         }
     });
 }
@@ -291,7 +291,7 @@ document.getElementById('deleteModal')?.addEventListener('click', function(e) {
 <div class="modal-backdrop" id="deleteModal">
     <div class="modal">
         <h3>Projekt löschen</h3>
-        <p style="font-size:.875rem; color:#64748B; margin-bottom:1.25rem;">
+        <p style="font-size:.875rem; color:var(--t-text-muted); margin-bottom:1.25rem;">
             Soll das Projekt <strong id="deleteProjectName"></strong> wirklich gelöscht werden? Diese Aktion kann nicht rückgängig gemacht werden.
         </p>
         <form id="deleteForm" method="POST">

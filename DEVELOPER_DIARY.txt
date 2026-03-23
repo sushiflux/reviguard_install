@@ -2,33 +2,57 @@
   REVIGUARD — DEVELOPER TAGEBUCH
   Hier werden alle Neuerungen und Änderungen mit Datum festgehalten,
   damit sie anschließend im Versions-Changelog dokumentiert werden können.
+
+  Versionsübersicht:
+    v0.1.0  –  Grundgerüst: Infrastruktur, Login, Admin, Dashboard
+    v0.2.0  –  Revisionssystem, Projektrollen, Profil
+    v0.3.0  –  2FA, Benutzereinstellungen, UI-Überarbeitung, Logo
+    v0.3.1  –  Login-Layout-Korrekturen, Copyright, dynamische Versionsnummer
+    v0.3.2  –  Bugfix: doppelte Erfolgsmeldung in Profileinstellungen
+    v0.4.0  –  Changelog-System: öffentlich + Developer-Verwaltung
+    v0.4.1  –  Dark/Light-Modus mit Switch-Button im Topbar
+    v0.4.2  –  Dark-Mode-Fixes: alle Views vollständig angepasst
+    v0.5.0  –  Session-Timeout: automatische Abmeldung bei Inaktivität
+    v0.5.1  –  Neue Badge-Typen (Deaktiviert, Broken), Badge-Reihenfolge, Tooltip-Delay
+================================================================================
+
+
+================================================================================
+  VERSION 0.1.0  —  Grundgerüst
+  Zeitraum: 2026-03-22
 ================================================================================
 
 --------------------------------------------------------------------------------
-2026-03-22  |  Initiales Setup
+2026-03-22  |  Initiales Setup & Infrastruktur
 --------------------------------------------------------------------------------
 - Projekt ReviGuard aufgesetzt (Laravel + Docker: Nginx, PHP-FPM, MySQL)
 - Datenbankstruktur angelegt:
-    · users          – Erweiterung um username, is_active, is_system_admin
-    · roles          – Viewer, Editor, Projektleiter, Developer,
-                       Projektleiter-Admin, Administrator, System-Admin
-    · user_roles     – Globale Rollenzuweisung pro User
-    · projects       – Systemprojekverwaltung
-    · project_user_roles – Projektspe­zifische Rollenzuweisung
-    · revisions      – Revisionssichere Einträge (kein Delete, nur Ersetzen)
-    · version_changelog – Versions­tagebuch für Developer
+    · users              – Erweiterung um username, is_active, is_system_admin
+    · roles              – Viewer, Editor, Projektleiter, Developer,
+                           Projektleiter-Admin, Administrator, System-Admin
+    · user_roles         – Globale Rollenzuweisung pro User
+    · projects           – Systemprojektverwaltung
+    · project_user_roles – Projektspezifische Rollenzuweisung
+    · revisions          – Revisionssichere Einträge (kein Delete, nur Ersetzen)
+    · version_changelog  – Versionstagebuch für Developer
 - Initialer System-Admin angelegt: RGAdmin (nicht löschbar)
+- Bugfix: Storage-Berechtigungen (www-data) im Dockerfile dauerhaft gesetzt
+- CLAUDE.md erstellt (Projektdokumentation für KI-Assistenten)
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Login-Seite
+--------------------------------------------------------------------------------
 - Login-Seite erstellt:
     · 1/3 Formular (username + password), 2/3 IT-Security Visual
     · Farbschema: Navy #0D1B2A | Blue #1E40AF | Cyan #06B6D4 | Amber #F59E0B
     · Rollenbasierter Schutz: deaktivierte Accounts werden abgewiesen
 
 --------------------------------------------------------------------------------
-2026-03-22  |  Admin-Bereich & Sidebar-Navigation
+2026-03-22  |  Sidebar-Navigation & Admin-Bereich
 --------------------------------------------------------------------------------
 - Sidebar-Layout erstellt (layouts/app.blade.php):
     · Feste linke Navigationsleiste mit Logo, User-Info und Logout
-    · Admin-Bereich in der Sidebar nur für Rolle administrator/system_admin sichtbar
+    · Admin-Bereich in der Sidebar nur für administrator/system_admin sichtbar
     · Aktive Seite wird farblich hervorgehoben (Cyan-Akzent)
 - Admin-Middleware (AdminMiddleware) schützt alle /admin/*-Routen
 - Admin-Bereich implementiert:
@@ -38,24 +62,27 @@
     · Einstellungen: Platzhalter für spätere Implementierung
 - Passwort-Reset über Modal-Fenster direkt in der Tabelle (kein extra Seitenaufruf)
 - Dashboard als Kachelansicht vorbereitet (Platzhalter für Projekte)
-- CLAUDE.md erstellt (Projektdokumentation für KI-Assistenten)
-- Bugfix: Storage-Berechtigungen (www-data) im Dockerfile dauerhaft gesetzt
+
+
+================================================================================
+  VERSION 0.2.0  —  Revisionssystem, Projektrollen & Profil
+  Zeitraum: 2026-03-22
+================================================================================
 
 --------------------------------------------------------------------------------
-2026-03-22  |  Berechtigungsmatrix, Projektrollen & Projektadministrator
+2026-03-22  |  Berechtigungsmatrix & Projektrollen
 --------------------------------------------------------------------------------
 - Matrixberechtigungssystem implementiert:
     · Tabelle project_user_roles: genau eine Rolle pro User pro Projekt
     · Matrix-View: Zeilen = User, Spalten = Projekte, Zellen = Rolle
     · Zuweisung/Entzug per Modal (AJAX, kein Seitenneu­laden)
 - Neue globale Rolle "Projektadministrator":
-    · Darf alle Projekte einsehen
-    · Darf neue Projekte anlegen
+    · Darf alle Projekte einsehen und neue Projekte anlegen
     · Kein Zugang zum Admin-Bereich
 - ProjectController: create/store nur für canCreateProjects()
   (Projektadministrator + System-Admin)
-- Rollen­beschreibungen als CSS-Tooltip (ⓘ) in User-Anlegen/Bearbeiten-Formular
-- Tooltip-Position­ierung korrigiert (kein Overflow hinter Navigation)
+- Rollenbeschreibungen als CSS-Tooltip (ⓘ) in User-Anlegen/Bearbeiten-Formular
+- Tooltip-Positionierung korrigiert (kein Overflow hinter Navigation)
 
 --------------------------------------------------------------------------------
 2026-03-22  |  User-Dropdown im Header & Profil-Seiten
@@ -66,8 +93,8 @@
     · Passwort ändern       → /profile/password
     · Abmelden              → POST /logout
 - Profil-Seiten erstellt:
-    · profile/roles.blade.php    – Globale Rollen + Projektrollen getrennt dargestellt
-    · profile/password.blade.php – Passwort­änderung mit aktuellem Passwort als Check
+    · profile/roles.blade.php    – Globale Rollen + Projektrollen getrennt
+    · profile/password.blade.php – Passwortänderung mit aktuellem Passwort als Check
 - ProfileController mit roles(), showPassword(), updatePassword()
 - Routen hinzugefügt: GET/POST profile/roles, GET/POST profile/password
 
@@ -76,83 +103,274 @@
 --------------------------------------------------------------------------------
 - Projektdetailseite (projects/show) komplett neu gebaut:
     · Zwei Ansichtsmodi: Journal (Timeline) und Liste (Tabelle)
-    · Umschaltung per Toggle-Buttons in der Toolbar; Präferenz wird in DB gespeichert
-    · Suchfeld: filtert gleichzeitig nach Revisionsnummer, Titel, Autor und Beschreibung
-    · Typ-Filter: Badges (Release, Hotfix, Update, Sicherheit, Sonstige) als
-      Toggle-Buttons; mehrere gleichzeitig anwählbar
+    · Umschaltung per Toggle-Buttons in der Toolbar; Präferenz in DB gespeichert
+    · Suchfeld: filtert nach Revisionsnummer, Titel, Autor und Beschreibung
+    · Typ-Filter: Badges als Toggle-Buttons; mehrere gleichzeitig anwählbar
 - Journal-Ansicht:
     · Timeline mit Linie und Punkten (40 px-Spalte + flex:1-Karte)
-    · Filterung via JS – Blade $loop->first/last wird nicht für Styles verwendet;
-      JS berechnet nach jedem Filter-Ereignis den ersten/letzten sichtbaren
-      Eintrag neu (updateJournalTimeline())
+    · JS berechnet nach jedem Filter-Ereignis ersten/letzten sichtbaren
+      Eintrag neu (updateJournalTimeline()) — kein Blade $loop->first/last
     · Aktuelle/erste Revision: Cyan-Akzent; alle anderen: neutral
 - Listen-Ansicht:
     · Tabelle mit Spalten: Version, Typ, Titel, Autor, Datum
     · Erste sichtbare Zeile erhält Cyan-Hintergrund (updateListFirstBadge())
-    · Klick auf Titel → springt zur entsprechenden Revision im Journal +
-      Highlight-Animation (outline-basierter Puls, kein box-shadow-Konflikt)
+    · Klick auf Titel → springt zur Revision im Journal + Highlight-Animation
 - Badge-Reihenfolge: Versions-Badge → Ersetzt-Icon → Pipe → Typ-Badges → Titel
 - Typ "Aktualisierung" in "Update" umbenannt
 
 --------------------------------------------------------------------------------
 2026-03-22  |  Vorgänger-Revisionen (Ersetzt-System)
 --------------------------------------------------------------------------------
-- Ersetzt-System visualisiert: Wenn Revision A durch B ersetzt wird, erscheint
-  bei B ein graues Rotate/History-Icon-Badge
-- Klick auf das Icon klappt das Vorgänger-Panel auf (Journal) bzw. zeigt
-  Vorgänger-Zeilen (Liste) direkt unter dem Eintrag
-- Vollständige Vorgängerkette: Mehrfach-Ersetzungen werden komplett angezeigt
-  (A ersetzt B, B ersetzt C → C und B sind Vorgänger von A)
+- Ersetzt-System visualisiert: Rotate/History-Icon-Badge bei ersetzten Revisionen
+- Klick klappt Vorgänger-Panel auf (Journal) bzw. Vorgänger-Zeilen (Liste)
+- Vollständige Vorgängerkette wird komplett angezeigt (A→B→C)
 - Technisch: $replacedMap in ProjectController::show() lädt alle ersetzten
-  Revisionen in einer einzigen Query und baut die Kette in PHP auf (kein N+1)
-- Vorgänger-Zeilen in der Listenansicht: display:table-row (nicht block),
+  Revisionen in einer einzigen Query, Kettenaufbau in PHP (kein N+1)
+- Vorgänger-Zeilen in Listenansicht: display:table-row (nicht block),
   damit colspan korrekt funktioniert
-- Klick auf Vorgänger-Titel in der Liste → springt ebenfalls ins Journal
-  (jumpToPredecessor())
-- Highlight-Animation: @keyframes revHighlight nutzt outline, @keyframes
-  predHighlight nutzt background-color (kein Konflikt mit JS-inline-Styles)
+- Klick auf Vorgänger-Titel → jumpToPredecessor()
+- Highlight-Animationen: revHighlight (outline) + predHighlight (background-color)
 
---------------------------------------------------------------------------------
-2026-03-22  |  User-Einstellungen (Profil-Seite)
---------------------------------------------------------------------------------
-- Neue Profil-Seite "Einstellungen" (profile/settings.blade.php):
-    · Dashboard-Ansicht: Kacheln oder Liste
-    · Revisions-Ansicht: Journal oder Liste
-    · Vorgänger: Standard ausgeklappt oder eingeklappt
-    · Einstellungen werden in der users-Tabelle gespeichert:
-      dashboard_view, revision_view, predecessors_expanded
-- ProfileController: showSettings() + saveSettings()
-- Routen: GET/POST profile/settings
-- Dropdown-Menü in der Topbar: Eintrag "Einstellungen" hinzugefügt
+
+================================================================================
+  VERSION 0.3.0  —  2FA, Benutzereinstellungen & UI-Überarbeitung
+  Zeitraum: 2026-03-22 – 2026-03-23
+================================================================================
 
 --------------------------------------------------------------------------------
 2026-03-22  |  Zwei-Faktor-Authentifizierung (TOTP + WebAuthn)
 --------------------------------------------------------------------------------
 - TOTP (Authenticator-App) implementiert:
     · Pakete: pragmarx/google2fa, bacon/bacon-qr-code
-    · Einrichtung: QR-Code + manueller Schlüssel unter profile/2fa/totp/setup
-    · Bestätigung mit 6-stelligem Code; Secret wird erst nach Bestätigung gespeichert
+    · Einrichtung: QR-Code + manueller Schlüssel unter profile/settings → Tab 2FA
+    · Bestätigung mit 6-stelligem Code; Secret erst nach Bestätigung gespeichert
     · Deaktivierung mit Passwort-Bestätigung
 - WebAuthn / YubiKey implementiert:
     · Paket: laragear/webauthn v4.1
     · User-Model: WebAuthnAuthenticatable-Interface + WebAuthnAuthentication-Trait
-    · Registrierung über Browser-API (navigator.credentials.create) ohne Seitenladen
+    · Registrierung über Browser-API (navigator.credentials.create)
     · Credentials können umbenannt und gelöscht werden
-    · Migration: create_webauthn_credentials (Basis-Migration des Pakets)
 - 2FA-Challenge-Flow:
-    · Nach erfolgreichem Login wird geprüft ob 2FA nötig ist
-    · Falls ja: Auth::logout(), 2fa_pending_user_id in Session, Redirect zu /2fa
+    · Nach Login: Prüfung ob 2FA nötig → Auth::logout(), Session-Key, Redirect /2fa
     · Middleware RequirePendingTwoFactor schützt alle /2fa/*-Routen
-    · Challenge-Seite: eigenständiges Layout (wie Login-Seite), zeigt TOTP-Formular
-      und/oder YubiKey-Button je nach aktiven Methoden des Users
-    · Nach Verifizierung: Auth::loginUsingId(), Session-Key gelöscht, Redirect zum Dashboard
-- Globale Admin-Richtlinie:
-    · Neue Tabelle: system_settings (key-value)
-    · Model: SystemSetting mit statischen get()/set()-Methoden
-    · Admin-Seite: admin/2fa-policy – Optionen: Keine Pflicht / Beliebig / Nur TOTP / Nur YubiKey
-    · User::requiresTwoFactor() prüft: eigene 2FA aktiv ODER globale Policy != none
-- Neue Routen-Gruppe: prefix('2fa'), middleware('2fa.pending')
-- Middleware-Alias 2fa.pending in bootstrap/app.php registriert
-- Sidebar-Navigation: "Zwei-Faktor-Auth" im Konto-Bereich, "2FA-Richtlinie" im Admin-Bereich
+    · Challenge-Seite: eigenständiges Layout, zeigt TOTP und/oder YubiKey-Button
+    · Nach Verifizierung: Auth::loginUsingId(), Session-Key gelöscht, → Dashboard
+- Globale Admin-Richtlinie (system_settings):
+    · Optionen: Keine Pflicht / Beliebig / Nur TOTP / Nur YubiKey
+    · User::requiresTwoFactor() prüft eigene 2FA aktiv ODER Policy != none
+
+--------------------------------------------------------------------------------
+2026-03-22  |  Benutzereinstellungen (Profil)
+--------------------------------------------------------------------------------
+- Neue Profil-Seite "Einstellungen" (profile/settings.blade.php):
+    · Dashboard-Ansicht: Kacheln oder Liste
+    · Revisions-Ansicht: Journal oder Liste
+    · Vorgänger: Standard ausgeklappt oder eingeklappt
+    · SVG-Vorschau-Kacheln für Darstellungsoptionen
+    · Einstellungen in users-Tabelle: dashboard_view, revision_view,
+      predecessors_expanded
+- ProfileController: showSettings() + saveSettings()
+- Dropdown-Menü Topbar: Eintrag "Einstellungen" hinzugefügt
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Tab-basierte Admin- & Profil-Seiten
+--------------------------------------------------------------------------------
+- Admin- und Profil-Seiten auf URL-Parameter-Tab-System umgestellt (?tab=<name>)
+- admin/access    → Tabs: benutzer, matrix
+- admin/settings  → Tabs: system, sicherheit, system-admins
+- profile/settings → Tabs: darstellung, passwort, 2fa
+- JS: history.replaceState hält Tab nach Formular-Submit
+- Alte dedizierte Routen leiten auf kombinierte Seiten um
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Berechtigungsmatrix — Accordion-Redesign
+--------------------------------------------------------------------------------
+- Matrix-Tab komplett überarbeitet: Accordion-Liste statt Spalten-Grid
+    · Eine Zeile pro User, Klick expandiert Inline-Panel mit allen Projekten
+    · Aktuelle Rolle als farbiger Badge: viewer=grün, editor=gelb,
+      projektleiter=blau, projektleiter_admin=amber, developer=lila
+    · Rollen­zuweisung öffnet Modal (AJAX → admin.permissions.assign/revoke)
+- Blade ParseError behoben: Mehrzeilige PHP-Ausdrücke in @php-Blöcke ausgelagert
+  (Hintergrund: @json() unterstützt nur einzeilige Ausdrücke)
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Revisionssuche — Multi-Select & Wildcard
+--------------------------------------------------------------------------------
+- Typ-Filter auf Multi-Select umgestellt (JS Set):
+    · Revision matcht, wenn sie einen der ausgewählten Typen hat (OR-Logik)
+    · "Alle" leert das Set und zeigt alle Einträge
+- Wildcard-Suche mit * als OR-Trenner:
+    · "fix*neu" → zeigt Einträge die "fix" ODER "neu" enthalten
+    · Ohne * bleiben Leerzeichen-getrennte Begriffe AND-verknüpft
+- data-version speichert Versionsnummer ohne "v"-Präfix; Suchfelder enthalten
+  beide Varianten ("1.3" und "v1.3") für flexible Suche
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Logo & Login-Seite
+--------------------------------------------------------------------------------
+- Offizielles ReviGuard-Logo eingebunden:
+    · logo/logo.png → public/logo.png
+    · Sidebar: Logo ersetzt SVG-Platzhalter-Icon (64px, Text darunter)
+    · Login-Seite: Logo links (90px), Markenname + Titel rechts daneben
+- Login-Seite: Copyright-Zeile im Footer (© Jahr dynamisch)
+- Versionsnummer in Login-Footer und Sidebar nun aus env(APP_VERSION)
+- APP_VERSION auf 0.3.0 gesetzt
+
+
+================================================================================
+  VERSION 0.4.0  —  Changelog-System
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Öffentlicher Changelog & Developer-Verwaltung
+--------------------------------------------------------------------------------
+- Neuer VersionChangelogController mit vollständigem CRUD
+- Öffentliche Changelog-Seite (/changelog):
+    · Für alle eingeloggten User zugänglich
+    · Einträge nach Version gruppiert, nur veröffentlichte Einträge sichtbar
+    · Zeilen mit "- " werden als Aufzählungspunkte gerendert
+    · Auf-/Zuklappen per Klick, "Alle aufklappen/einklappen"
+- Developer-Verwaltung (/developer/changelog):
+    · Zugang für Rollen: developer, administrator, system_admin
+    · Übersichtstabelle mit Status (Entwurf / Veröffentlicht)
+    · Einträge erstellen, bearbeiten, löschen, veröffentlichen
+    · Formular: Versionsnummer, Titel, Inhalt, "Sofort veröffentlichen"-Checkbox
+    · Versionsnummer wird mit aktueller APP_VERSION vorausgefüllt
+- Sidebar-Navigation:
+    · Neuer Abschnitt "Entwickler" mit Link "Changelog pflegen" (nur für Developer+Admin)
+    · Versionsnummer unten links ist nun klickbarer Link → öffentlicher Changelog
+- Routen: 8 neue Routen unter /changelog und /developer/changelog
+- APP_VERSION auf 0.4.0 gesetzt
+
+
+================================================================================
+  VERSION 0.4.1  —  Dark/Light-Modus
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Dark/Light-Modus & Theme-Toggle
+--------------------------------------------------------------------------------
+- CSS-Variablen-System implementiert:
+    · :root definiert --t-* Variablen für Light-Mode (Standard)
+    · [data-theme="dark"] überschreibt alle --t-* Variablen mit Dark-Werten
+    · Sidebar bleibt immer dunkel (--c-primary), unabhängig vom Theme
+    · Schlüssel-Variablen: --t-bg, --t-surface, --t-surface2, --t-border,
+      --t-text, --t-text-muted, --t-input-bg, --t-input-border, --t-input-text,
+      --t-topbar-bg, --t-topbar-border, --t-th-bg, --t-tr-hover, --t-modal-bg
+- Theme-Toggle im Topbar:
+    · Sonne-Icon ☀ – Checkbox-Switch – Mond-Icon 🌙
+    · Wechselt data-theme Attribut auf <html> + speichert in localStorage (rg-theme)
+- Anti-Flash-Script im <head>:
+    · Liest localStorage vor dem CSS-Rendering und setzt data-theme sofort
+    · Verhindert hellen Aufblitz beim Laden wenn Dark-Mode gespeichert ist
+- APP_VERSION auf 0.4.1 gesetzt
+
+
+================================================================================
+  VERSION 0.5.0  —  Session-Timeout
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Automatische Abmeldung bei Inaktivität
+--------------------------------------------------------------------------------
+- SessionTimeoutController: speichert Einstellung via SystemSetting
+- Route POST admin/session-timeout → admin.session-timeout.save
+- Admin > Einstellungen > Sicherheit: neues Formular "Session-Timeout"
+    · Eingabefeld (Minuten, 0 = deaktiviert) + Schnellauswahl-Buttons (5/10/15/30/Aus)
+    · Hinweis-Box mit Erklärung
+- Countdown-Timer in der Topbar:
+    · Zeigt verbleibende Zeit im Format MM:SS
+    · Normal: dezente Anzeige in var(--t-text-muted)
+    · Warnung (≤ 2 Minuten): orange, pulsierend
+    · Kritisch (≤ 30 Sekunden): rot, schneller pulsierend
+    · Jede Benutzeraktivität (Maus, Tastatur, Klick, Scroll) setzt Timer zurück
+    · Bei Ablauf: automatischer Logout via verstecktem POST-Formular
+- Wert 0 deaktiviert Timer vollständig (keine Anzeige)
+- APP_VERSION auf 0.5.0 gesetzt
+
+
+================================================================================
+  VERSION 0.4.2  —  Dark-Mode-Fixes
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Dark-Mode: alle Views vollständig angepasst
+--------------------------------------------------------------------------------
+- Globaler Dark-Mode-Override-Block in layouts/app.blade.php ergänzt:
+    · Alle Form-Elemente (input, select, textarea) via CSS-Variablen
+    · Badge-Textfarben für Dark-Mode aufgehellt (badge-cyan/blue/amber/green/red/gray)
+    · Tab-System, Accordion, Preference-Kacheln, Changelog-Views
+    · .proj-card, .rev-card, .tl-top/.tl-dot/.tl-bottom, .type-filter-btn
+- dashboard.blade.php: alle hardcodierten Inline-Farben auf CSS-Variablen umgestellt
+- projects/show.blade.php:
+    · typeConfig auf rgba()-Backgrounds umgestellt (funktionieren in beiden Modi)
+    · Revision-Cards, Timeline-Punkte/-Linien, Toolbar-Buttons auf CSS-Vars
+    · Vorgänger-Sektion: rgba-Farben statt hardcodiertem #FFFBEB/#FEF3C7
+    · JS setView() und updateViewButtons() nutzen 'transparent' statt '#fff'
+- admin/settings.blade.php: Radio-Label-Hintergründe auf CSS-Vars
+- APP_VERSION auf 0.4.2 gesetzt
+
+
+================================================================================
+  VERSION 0.3.2  —  Bugfix
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Bugfix: doppelte Erfolgsmeldung in Profileinstellungen
+--------------------------------------------------------------------------------
+- profile/settings.blade.php renderte session('success') und session('error')
+  eigenständig, obwohl layouts/app.blade.php diese bereits global ausgibt
+- Doppelten Flash-Block aus der View entfernt
+- APP_VERSION auf 0.3.2 gesetzt
+
+
+================================================================================
+  VERSION 0.3.1  —  Login-Layout-Korrekturen
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Login-Seite — Layout & Kosmetik
+--------------------------------------------------------------------------------
+- Login-Header überarbeitet: Logo (90px) linksbündig, rechts daneben Markenname
+  oben und "Willkommen zurück" + Untertitel unten (space-between)
+- Logo skaliert auf Höhe des Textblocks (align-items: stretch, height: 100%)
+- Copyright-Zeile im Footer hinzugefügt (© Jahr dynamisch via date('Y'))
+- Versionsnummer in Login-Footer und Sidebar aus env(APP_VERSION) (war hardcoded)
+- APP_VERSION auf 0.3.1 gesetzt
+
+================================================================================
+
+
+================================================================================
+  VERSION 0.5.1  —  Neue Badge-Typen & UI-Feinschliff
+  Zeitraum: 2026-03-23
+================================================================================
+
+--------------------------------------------------------------------------------
+2026-03-23  |  Neue Revision-Eintragstypen: Deaktiviert & Broken
+--------------------------------------------------------------------------------
+- Zwei neue Typen für Revisionseinträge hinzugefügt:
+    · "Deaktiviert" (grau) — für vorübergehend deaktivierte Funktionen/Bereiche
+    · "Broken" (schwarz/dunkel) — für bekannte, noch nicht behobene Fehler
+- Beide Typen in allen betroffenen Stellen ergänzt:
+    · create.blade.php und replace.blade.php: Badge-Buttons inkl. Dark-Mode-Override
+    · layouts/app.blade.php: rev-type-badge Dark-Mode-CSS für beide neuen Typen
+    · RevisionController.php: Validierungsregel (in:...) um beide Typen erweitert
+    · CLAUDE.md: Tabelle aller gültigen Entry-Types dokumentiert
+
+--------------------------------------------------------------------------------
+2026-03-23  |  UI-Feinschliff: Badge-Reihenfolge & Tooltip-Verzögerung
+--------------------------------------------------------------------------------
+- "Release"-Badge in beiden Formularen an erste Stelle gesetzt
+- Tooltip-Verzögerung auf den Badge-Buttons von 1,2s auf 0,7s geändert
+- Tooltip-Delay in replace.blade.php nachgezogen (opacity/visibility statt
+  display:none, damit CSS-Transition funktioniert)
+- APP_VERSION auf 0.5.1 gesetzt
 
 ================================================================================

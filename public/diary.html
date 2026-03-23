@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReviGuard — Aufbau-Animation</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy: #0D1B2A; --blue: #1E40AF; --cyan: #06B6D4;
+  --amber: #F59E0B; --slate: #1E293B; --text: #CBD5E1; --muted: #64748B;
+}
+
+body {
+  background: #060E18; color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  overflow: hidden; width: 100vw; height: 100vh;
+}
+
+/* grid background */
+#grid-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(6,182,212,.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6,182,212,.035) 1px, transparent 1px);
+  background-size: 52px 52px;
+  animation: gbpulse 5s ease-in-out infinite;
+}
+#grid-bg::after {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 70% 65% at 50% 45%, transparent 30%, #060E18 100%);
+}
+@keyframes gbpulse { 0%,100%{opacity:.6} 50%{opacity:1} }
+
+/* ── top bar ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; height: 44px; z-index: 100;
+  display: flex; align-items: center; padding: 0 1.5rem; gap: 1rem;
+  border-bottom: 1px solid rgba(6,182,212,.1);
+  background: rgba(6,14,24,.85); backdrop-filter: blur(8px);
+}
+.brand-row { display: flex; align-items: center; gap: .6rem; }
+.brand-pulse {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--cyan); box-shadow: 0 0 10px var(--cyan);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(.75);opacity:.5} }
+.brand-name { font-size: .85rem; font-weight: 800; color: #F1F5F9; letter-spacing: .06em; }
+.brand-sub  { font-size: .68rem; color: var(--muted); }
+
+/* scene progress track */
+#scene-track {
+  flex: 1; height: 2px; background: rgba(255,255,255,.06); border-radius: 1px; overflow: hidden;
+}
+#scene-fill {
+  height: 100%; background: var(--cyan); border-radius: 1px;
+  box-shadow: 0 0 8px var(--cyan); width: 0%;
+  transition: width .3s ease;
+}
+
+/* building indicator */
+#building {
+  font-size: .65rem; color: var(--cyan); letter-spacing: .05em;
+  min-width: 220px; text-align: right;
+  opacity: 0; transition: opacity .3s;
+}
+#building.show { opacity: 1; }
+#building::before { content: '⚡ '; }
+
+/* ── scenes ── */
+.scene {
+  position: absolute; inset: 0; top: 44px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .55s;
+  z-index: 1;
+}
+.scene.active { opacity: 1; pointer-events: auto; }
+
+/* ver badge */
+.ver-badge {
+  position: absolute; top: 1.2rem; left: 1.5rem;
+  display: flex; align-items: center; gap: .55rem;
+  opacity: 0; transform: translateX(-12px);
+  transition: opacity .45s .15s, transform .45s .15s;
+}
+.scene.active .ver-badge { opacity: 1; transform: translateX(0); }
+.vb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 8px var(--cyan); }
+.vb-num { font-size: .72rem; font-weight: 800; color: var(--cyan); letter-spacing: .12em; }
+.vb-name { font-size: .7rem; color: var(--muted); }
+
+/* caption */
+.caption {
+  position: absolute; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: .5rem;
+  font-size: .7rem; color: #334155; letter-spacing: .04em;
+  opacity: 0; white-space: nowrap;
+  transition: opacity .5s 2s;
+}
+.scene.active .caption { opacity: 1; }
+.cap-dot { width: 3px; height: 3px; border-radius: 50%; background: #334155; }
+
+/* ── transition overlay ── */
+#trans {
+  position: fixed; inset: 0; z-index: 200;
+  background: #020810;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity .35s;
+}
+#trans.show { opacity: 1; }
+#trans-ver {
+  font-size: 4rem; font-weight: 900; color: var(--cyan);
+  letter-spacing: -.02em; line-height: 1;
+  text-shadow: 0 0 60px rgba(6,182,212,.4);
+  transform: scale(.92); transition: transform .5s;
+}
+#trans.show #trans-ver { transform: scale(1); }
+#trans-name { font-size: 1rem; color: #334155; letter-spacing: .12em; text-transform: uppercase; }
+#trans-bar {
+  width: 80px; height: 2px; background: rgba(6,182,212,.2); border-radius: 1px; overflow: hidden; margin-top: .5rem;
+}
+#trans-bar-fill { height: 100%; background: var(--cyan); width: 0%; transition: width .6s ease; }
+
+/* ── nav bottom ── */
+#nav {
+  position: fixed; bottom: 1.2rem; right: 1.5rem; z-index: 100;
+  display: flex; gap: .45rem; align-items: center;
+}
+.nbtn {
+  background: rgba(6,182,212,.08); border: 1px solid rgba(6,182,212,.2);
+  color: var(--cyan); border-radius: 6px; cursor: pointer;
+  padding: .3rem .65rem; font-size: .72rem; font-weight: 700;
+  transition: background .15s; display: flex; align-items: center; gap: .3rem;
+}
+.nbtn:hover { background: rgba(6,182,212,.18); }
+#dots {
+  position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%);
+  display: flex; gap: .45rem; z-index: 100;
+}
+.dot {
+  width: 6px; height: 6px; border-radius: 50%; background: #1E293B; cursor: pointer;
+  transition: background .25s, transform .25s, box-shadow .25s;
+}
+.dot.on { background: var(--cyan); transform: scale(1.5); box-shadow: 0 0 6px var(--cyan); }
+
+/* ═══════════════════════════════════════════
+   SHARED UI COMPONENTS
+═══════════════════════════════════════════ */
+.win {
+  border-radius: 10px; overflow: hidden;
+  box-shadow: 0 40px 80px rgba(0,0,0,.65), 0 0 0 1px rgba(255,255,255,.06);
+  display: flex; flex-direction: column; position: relative;
+  background: #F1F5F9;
+}
+.win.dark { background: #0F1923; }
+
+.win-bar {
+  height: 26px; background: #E2E8F0; flex-shrink: 0;
+  display: flex; align-items: center; padding: 0 .65rem; gap: .35rem;
+}
+.win.dark .win-bar { background: #0A1219; }
+.wb-r { width: 9px; height: 9px; border-radius: 50%; background: #EF4444; }
+.wb-y { width: 9px; height: 9px; border-radius: 50%; background: #F59E0B; }
+.wb-g { width: 9px; height: 9px; border-radius: 50%; background: #22C55E; }
+.wb-url {
+  flex: 1; margin: 0 .5rem; height: 14px; background: #CBD5E1; border-radius: 3px;
+  display: flex; align-items: center; padding: 0 .45rem; font-size: .52rem; color: #64748B;
+}
+.win.dark .wb-url { background: #1E293B; color: #475569; }
+
+.win-body { display: flex; flex: 1; overflow: hidden; }
+
+/* sidebar */
+.sb {
+  width: 190px; background: #0D1B2A; flex-shrink: 0;
+  display: flex; flex-direction: column; padding: .75rem 0;
+  opacity: 0; transform: translateX(-16px);
+  transition: opacity .4s, transform .4s;
+}
+.sb.in { opacity: 1; transform: translateX(0); }
+.sb-logo { display: flex; align-items: center; gap: .5rem; padding: .35rem .85rem .9rem; }
+.sb-logo-sq { width: 22px; height: 22px; border-radius: 4px; background: var(--cyan); flex-shrink: 0; }
+.sb-logo-txt { font-size: .75rem; font-weight: 800; color: #F1F5F9; letter-spacing: .04em; }
+.sb-sec { font-size: .55rem; color: #1E3A5F; text-transform: uppercase; letter-spacing: .12em; padding: .4rem .85rem .2rem; }
+.sb-lnk {
+  display: flex; align-items: center; gap: .45rem;
+  padding: .38rem .85rem; font-size: .68rem; color: #475569;
+  opacity: 0; transform: translateX(-8px);
+  transition: opacity .3s, transform .3s, background .15s, color .15s;
+}
+.sb-lnk.in { opacity: 1; transform: translateX(0); }
+.sb-lnk.cur { background: rgba(6,182,212,.14); color: var(--cyan); }
+.sb-ico { width: 13px; height: 13px; opacity: .75; flex-shrink: 0; }
+.sb-ver { margin-top: auto; padding: .65rem .85rem; font-size: .58rem; color: #1E3A5F; }
+
+/* topbar */
+.tb {
+  height: 40px; background: #fff; border-bottom: 1px solid #E2E8F0;
+  display: flex; align-items: center; padding: 0 .85rem; gap: .65rem;
+  flex-shrink: 0; opacity: 0; transition: opacity .35s;
+}
+.win.dark .tb { background: #0F1923; border-color: #1E293B; }
+.tb.in { opacity: 1; }
+.tb-crumb { flex: 1; font-size: .68rem; color: #94A3B8; }
+.tb-crumb b { color: #0D1B2A; font-weight: 700; }
+.win.dark .tb-crumb b { color: #F1F5F9; }
+.tb-av {
+  width: 26px; height: 26px; border-radius: 50%;
+  background: linear-gradient(135deg, #1E40AF, #06B6D4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .58rem; font-weight: 800; color: #fff;
+}
+.tb-toggle { display: flex; align-items: center; gap: .3rem; font-size: .6rem; color: #94A3B8; }
+.toggle-sw {
+  width: 28px; height: 14px; border-radius: 7px; background: #1E40AF;
+  position: relative; cursor: pointer;
+}
+.toggle-sw .knob {
+  width: 10px; height: 10px; border-radius: 50%; background: #fff;
+  position: absolute; top: 2px; left: 2px;
+  transition: left .35s cubic-bezier(.4,0,.2,1);
+}
+.toggle-sw.on { background: var(--cyan); }
+.toggle-sw.on .knob { left: 16px; }
+
+/* main content area */
+.pg { flex: 1; overflow-y: auto; padding: 1rem; opacity: 0; transition: opacity .4s .2s; }
+.pg.in { opacity: 1; }
+
+/* cards */
+.card {
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 8px;
+  margin-bottom: .65rem; overflow: hidden;
+  opacity: 0; transform: translateY(8px);
+  transition: opacity .35s, transform .35s;
+}
+.win.dark .card { background: #1E293B; border-color: #334155; }
+.card.in { opacity: 1; transform: translateY(0); }
+.c-head {
+  padding: .55rem .8rem; border-bottom: 1px solid #E2E8F0;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.win.dark .c-head { border-color: #334155; }
+.c-title { font-size: .75rem; font-weight: 700; color: #0D1B2A; }
+.win.dark .c-title { color: #F1F5F9; }
+.c-body { padding: .7rem .8rem; }
+
+/* badges */
+.b {
+  display: inline-flex; align-items: center;
+  padding: .12rem .4rem; border-radius: 4px;
+  font-size: .58rem; font-weight: 700; border: 1px solid; white-space: nowrap;
+}
+.b-ver  { background: #EFF6FF; color: #1D4ED8; border-color: #93C5FD; }
+.b-upd  { background: #DBEAFE; color: #1D4ED8; border-color: #93C5FD; }
+.b-fix  { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+.b-rel  { background: #DCFCE7; color: #15803D; border-color: #86EFAC; }
+.b-chg  { background: #FEF3C7; color: #B45309; border-color: #FCD34D; }
+.b-hot  { background: #FEE2E2; color: #DC2626; border-color: #FCA5A5; }
+.b-dis  { background: #F1F5F9; color: #64748B; border-color: #CBD5E1; }
+.b-brk  { background: #1E293B; color: #F1F5F9; border-color: #475569; }
+.b-rep  { background: #FEF3C7; color: #B45309; border-color: #FCD34D; font-size: .52rem; }
+
+/* tiles */
+.tiles { display: grid; gap: .55rem; }
+.tile {
+  background: #fff; border: 1px solid #E2E8F0; border-radius: 7px; padding: .6rem .7rem;
+  opacity: 0; transform: translateY(7px);
+  transition: opacity .3s, transform .3s;
+}
+.win.dark .tile { background: #1E293B; border-color: #334155; }
+.tile.in { opacity: 1; transform: translateY(0); }
+.tile-num { font-size: 1.25rem; font-weight: 800; color: var(--cyan); }
+.tile-lbl { font-size: .6rem; color: #94A3B8; margin-top: .1rem; }
+
+/* form */
+.f-row { margin-bottom: .55rem; }
+.f-lbl { font-size: .6rem; color: #64748B; font-weight: 600; margin-bottom: .2rem; display: block; }
+.f-inp {
+  width: 100%; height: 26px; border: 1px solid #CBD5E1; border-radius: 5px;
+  background: #fff; padding: 0 .5rem; font-size: .68rem; color: #0D1B2A;
+  display: flex; align-items: center;
+}
+.win.dark .f-inp { background: #0D1B2A; border-color: #334155; color: #CBD5E1; }
+.f-inp.focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(6,182,212,.15); }
+.cursor { display: inline-block; width: 1px; height: 11px; background: var(--cyan); animation: blink .8s infinite; vertical-align: middle; margin-left: 1px; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+.f-btn {
+  width: 100%; height: 27px; border: none; border-radius: 5px;
+  background: var(--cyan); color: #fff; font-size: .68rem; font-weight: 800;
+  cursor: pointer; letter-spacing: .04em;
+  opacity: 0; transition: opacity .35s;
+}
+.f-btn.in { opacity: 1; }
+
+/* table */
+.tbl { width: 100%; border-collapse: collapse; }
+.tbl th { font-size: .58rem; color: #94A3B8; text-transform: uppercase; letter-spacing: .08em; padding: .3rem .5rem; text-align: left; border-bottom: 1px solid #E2E8F0; }
+.win.dark .tbl th { border-color: #334155; }
+.tbl td { font-size: .65rem; color: #334155; padding: .32rem .5rem; border-bottom: 1px solid #F8FAFC; }
+.win.dark .tbl td { color: #CBD5E1; border-color: #1E293B; }
+.tbl-tr { opacity: 0; transition: opacity .3s; }
+.tbl-tr.in { opacity: 1; }
+
+/* journal */
+.jn-wrap { display: flex; flex-direction: column; }
+.jn-row {
+  display: flex; gap: .5rem;
+  opacity: 0; transition: opacity .38s;
+}
+.jn-row.in { opacity: 1; }
+.jn-spine { width: 18px; display: flex; flex-direction: column; align-items: center; flex-shrink: 0; }
+.jn-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 7px rgba(6,182,212,.5); margin-top: 7px; flex-shrink: 0; }
+.jn-dot.dim { background: rgba(6,182,212,.35); box-shadow: none; }
+.jn-vl { flex: 1; width: 1px; background: #E2E8F0; margin: 3px 0; min-height: 10px; }
+.win.dark .jn-vl { background: #1E293B; }
+.jn-card {
+  flex: 1; background: #fff; border: 1px solid #E2E8F0; border-radius: 7px;
+  padding: .45rem .65rem; margin-bottom: .45rem;
+  box-shadow: inset 3px 0 0 var(--cyan);
+}
+.win.dark .jn-card { background: #1E293B; border-color: #334155; }
+.jn-card.pred { box-shadow: inset 3px 0 0 rgba(245,158,11,.5); }
+.jn-card.removed { background: rgba(239,68,68,.05); box-shadow: inset 3px 0 0 rgba(239,68,68,.45); }
+.jn-ver { font-size: .58rem; font-weight: 700; color: var(--cyan); }
+.jn-t { font-size: .7rem; font-weight: 600; color: #0D1B2A; margin-top: .1rem; }
+.win.dark .jn-t { color: #F1F5F9; }
+.jn-t.struck { text-decoration: line-through; text-decoration-color: rgba(239,68,68,.6); color: #94A3B8; }
+.jn-m { font-size: .58rem; color: #94A3B8; margin-top: .12rem; }
+
+/* filter bar */
+.fbar {
+  display: flex; gap: .4rem; align-items: center; margin-bottom: .65rem;
+  opacity: 0; transition: opacity .35s;
+}
+.fbar.in { opacity: 1; }
+.fbar-inp {
+  flex: 1; height: 25px; border: 1px solid #E2E8F0; border-radius: 5px;
+  font-size: .63rem; color: #94A3B8; padding: 0 .5rem; background: #fff;
+  display: flex; align-items: center;
+}
+.win.dark .fbar-inp { background: #1E293B; border-color: #334155; color: #475569; }
+.fbar-btn {
+  padding: .15rem .4rem; border-radius: 4px; border: 1px solid; font-size: .58rem; font-weight: 600;
+}
+
+/* otp */
+.otp-row { display: flex; gap: .4rem; }
+.otp-cell {
+  width: 34px; height: 42px; background: #1E293B; border: 1px solid #334155;
+  border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 800; color: #F1F5F9;
+  opacity: 0; transition: opacity .2s;
+}
+.otp-cell.in { opacity: 1; }
+.otp-cell.cur { border-color: var(--cyan); box-shadow: 0 0 8px rgba(6,182,212,.35); }
+
+/* modal */
+.modal-bg {
+  position: absolute; inset: 0; background: rgba(0,0,0,.45);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .4s; border-radius: 10px;
+}
+.modal-bg.in { opacity: 1; }
+.modal {
+  background: #fff; border-radius: 9px; padding: 1.1rem;
+  width: 240px; box-shadow: 0 16px 40px rgba(0,0,0,.3);
+  transform: translateY(18px); transition: transform .4s;
+}
+.modal-bg.in .modal { transform: translateY(0); }
+.win.dark .modal { background: #1E293B; }
+.modal-title { font-size: .75rem; font-weight: 700; color: #0D1B2A; margin-bottom: .65rem; }
+.win.dark .modal-title { color: #F1F5F9; }
+
+/* tab nav */
+.tabs { display: flex; border-bottom: 1px solid #E2E8F0; margin-bottom: .65rem; }
+.win.dark .tabs { border-color: #334155; }
+.tab {
+  padding: .35rem .7rem; font-size: .65rem; color: #94A3B8; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .2s, border-color .2s;
+}
+.tab.on { color: var(--cyan); border-color: var(--cyan); font-weight: 700; }
+
+/* pref tiles */
+.pref-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.pref-tile {
+  border: 2px solid #E2E8F0; border-radius: 7px; padding: .5rem;
+  text-align: center; cursor: pointer; font-size: .62rem; color: #64748B;
+  opacity: 0; transform: scale(.92);
+  transition: opacity .3s, transform .3s, border-color .2s;
+}
+.pref-tile.in { opacity: 1; transform: scale(1); }
+.pref-tile.on { border-color: var(--cyan); color: var(--cyan); }
+.pref-icon { font-size: 1.2rem; margin-bottom: .25rem; }
+
+/* changelog entry */
+.cl-e {
+  border: 1px solid #E2E8F0; border-radius: 7px; margin-bottom: .5rem; overflow: hidden;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity .35s, transform .35s;
+}
+.win.dark .cl-e { border-color: #334155; }
+.cl-e.in { opacity: 1; transform: translateY(0); }
+.cl-head {
+  display: flex; align-items: center; gap: .55rem; padding: .45rem .7rem;
+  background: #F8FAFC; cursor: pointer;
+}
+.win.dark .cl-head { background: #162032; }
+.cl-ver { font-size: .65rem; font-weight: 800; color: var(--cyan); }
+.cl-title { font-size: .7rem; font-weight: 600; color: #0D1B2A; flex: 1; }
+.win.dark .cl-title { color: #F1F5F9; }
+.cl-tag { font-size: .58rem; padding: .1rem .35rem; border-radius: 3px; font-weight: 700; }
+.cl-tag.pub { background: #DCFCE7; color: #15803D; border: 1px solid #86EFAC; }
+.cl-body { padding: .5rem .7rem; font-size: .64rem; color: #64748B; line-height: 1.65; }
+.win.dark .cl-body { color: #94A3B8; }
+.cl-li::before { content: '·  '; color: var(--cyan); }
+
+/* badge builder */
+.bb-wrap { display: flex; flex-wrap: wrap; gap: .38rem; }
+.bb-btn {
+  padding: .18rem .5rem; border-radius: 5px; border: 1px solid;
+  font-size: .6rem; font-weight: 700; cursor: pointer;
+  display: flex; align-items: center; gap: .25rem;
+  opacity: 0; transform: scale(.85);
+  transition: opacity .25s, transform .25s;
+}
+.bb-btn.in { opacity: 1; transform: scale(1); }
+
+/* entry preview row */
+.ep-row {
+  display: flex; align-items: flex-start; gap: .5rem;
+  background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px;
+  padding: .45rem .6rem; margin-bottom: .4rem;
+  opacity: 0; transform: translateX(-8px);
+  transition: opacity .3s, transform .3s;
+}
+.ep-row.in { opacity: 1; transform: translateX(0); }
+.ep-row.removed { background: rgba(239,68,68,.06); border-color: rgba(239,68,68,.2); }
+.ep-txt { font-size: .65rem; color: #334155; flex: 1; line-height: 1.45; }
+.ep-txt.struck { text-decoration: line-through; text-decoration-color: rgba(239,68,68,.5); color: #94A3B8; }
+.streak-chip {
+  font-size: .55rem; font-weight: 700; color: #DC2626;
+  background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.25);
+  padding: .1rem .3rem; border-radius: 3px; white-space: nowrap; flex-shrink: 0;
+}
+
+/* timeout bar */
+.to-bar { height: 3px; background: #E2E8F0; overflow: hidden; flex-shrink: 0; }
+.to-fill { height: 100%; transition: width 2.8s linear, background 1s; }
+
+/* pulse anim */
+@keyframes urgentpulse {
+  0%,100%{opacity:1} 50%{opacity:.45}
+}
+.pulsing { animation: urgentpulse .9s infinite; }
+.pulsing-fast { animation: urgentpulse .4s infinite; }
+</style>
+</head>
+<body>
+
+<div id="grid-bg"></div>
+
+<!-- Top bar -->
+<div id="topbar">
+  <div class="brand-row">
+    <div class="brand-pulse"></div>
+    <span class="brand-name">REVIGUARD</span>
+    <span class="brand-sub">Entwicklungsgeschichte</span>
+  </div>
+  <div id="scene-track"><div id="scene-fill"></div></div>
+  <div id="building"></div>
+</div>
+
+<!-- Transition overlay -->
+<div id="trans">
+  <div id="trans-ver"></div>
+  <div id="trans-name"></div>
+  <div id="trans-bar"><div id="trans-bar-fill"></div></div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 0 — Login  (v0.1.0)
+════════════════════════════════════ -->
+<div class="scene" id="s0">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.1.0</span><span class="vb-name">Login-Seite</span></div>
+  <div class="win" style="width:820px;height:490px;flex-direction:row;">
+    <div class="win-bar" style="position:absolute;top:0;left:0;right:0;">
+      <div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div>
+      <div class="wb-url">localhost:8084 / login</div>
+    </div>
+    <!-- left form -->
+    <div id="l-form" style="width:36%;height:100%;display:flex;flex-direction:column;justify-content:center;padding:2rem 1.5rem;padding-top:2.8rem;background:#fff;opacity:0;transition:opacity .5s .2s;">
+      <div id="l-logo" style="display:flex;align-items:center;gap:.6rem;margin-bottom:1.5rem;opacity:0;transition:opacity .4s .5s;">
+        <div style="width:34px;height:34px;border-radius:7px;background:var(--cyan);flex-shrink:0;"></div>
+        <div>
+          <div style="font-size:.9rem;font-weight:900;color:#0D1B2A;letter-spacing:.05em;">REVIGUARD</div>
+          <div style="font-size:.58rem;color:#94A3B8;">Willkommen zurück</div>
+        </div>
+      </div>
+      <div class="f-row" id="l-fu" style="opacity:0;transition:opacity .3s .8s;">
+        <span class="f-lbl">Benutzername</span>
+        <div class="f-inp focus" id="l-fi"></div>
+      </div>
+      <div class="f-row" id="l-fp" style="opacity:0;transition:opacity .3s 1.1s;">
+        <span class="f-lbl">Passwort</span>
+        <div class="f-inp" style="letter-spacing:.2em;color:#94A3B8;font-size:.7rem;">••••••••</div>
+      </div>
+      <button class="f-btn" id="l-btn">Anmelden</button>
+      <div style="font-size:.56rem;color:#CBD5E1;text-align:center;margin-top:.85rem;opacity:0;transition:opacity .3s 1.7s;" id="l-foot">© 2026 ReviGuard · v0.1.0</div>
+    </div>
+    <!-- right visual -->
+    <div id="l-vis" style="flex:1;height:100%;background:linear-gradient(135deg,#0D1B2A 0%,#1E40AF 55%,#06B6D4 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.9rem;padding-top:1.8rem;opacity:0;transition:opacity .55s .35s;">
+      <div style="width:60px;height:60px;border-radius:50%;background:rgba(6,182,212,.15);border:2px solid rgba(6,182,212,.4);display:flex;align-items:center;justify-content:center;">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div style="font-size:.78rem;font-weight:800;color:#F1F5F9;letter-spacing:.15em;">IT-SECURITY</div>
+      <div style="font-size:.63rem;color:rgba(148,163,184,.7);text-align:center;max-width:150px;line-height:1.55;">Revisionssichere Dokumentation für Ihr System</div>
+      <div style="display:flex;gap:.6rem;margin-top:.3rem;">
+        <div style="width:5px;height:5px;border-radius:50%;background:rgba(6,182,212,.7);"></div>
+        <div style="width:5px;height:5px;border-radius:50%;background:rgba(6,182,212,.25);"></div>
+        <div style="width:5px;height:5px;border-radius:50%;background:rgba(6,182,212,.25);"></div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Split-Layout <span class="cap-dot"></span> Rollenbasierter Schutz <span class="cap-dot"></span> is_active-Prüfung</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 1 — App-Shell + Dashboard  (v0.1.0)
+════════════════════════════════════ -->
+<div class="scene" id="s1">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.1.0</span><span class="vb-name">App-Shell & Dashboard</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / dashboard</div></div>
+    <div class="win-body">
+      <div class="sb" id="sb1">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-sec">Navigation</div>
+        <div class="sb-lnk cur" id="sl1-0"><svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Dashboard</div>
+        <div class="sb-lnk" id="sl1-1"><svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>Projekte</div>
+        <div class="sb-sec" id="sl1-admin-sec" style="opacity:0;transition:opacity .3s;">Admin</div>
+        <div class="sb-lnk" id="sl1-2" style="opacity:0;transform:translateX(-8px);transition:opacity .3s,transform .3s;"><svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>Benutzerverwaltung</div>
+        <div class="sb-lnk" id="sl1-3" style="opacity:0;transform:translateX(-8px);transition:opacity .3s,transform .3s;"><svg class="sb-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>Einstellungen</div>
+        <div class="sb-ver" id="sl1-ver" style="opacity:0;transition:opacity .4s;">v0.1.0</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb" id="tb1"><span class="tb-crumb">Dashboard</span><div class="tb-av">M</div></div>
+        <div class="pg" id="pg1">
+          <div class="tiles" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:.7rem;" id="tl1">
+            <div class="tile" id="ti0"><div class="tile-num">3</div><div class="tile-lbl">Projekte</div></div>
+            <div class="tile" id="ti1"><div class="tile-num">24</div><div class="tile-lbl">Revisionen</div></div>
+            <div class="tile" id="ti2"><div class="tile-num">7</div><div class="tile-lbl">Benutzer</div></div>
+          </div>
+          <div class="card" id="dc0"><div class="c-head"><span class="c-title">Kundensystem Alpha</span><span class="b b-rel">Release</span></div><div class="c-body" style="font-size:.63rem;color:#64748B;">Letzte Revision: v2.4.1 &nbsp;·&nbsp; vor 2 Tagen</div></div>
+          <div class="card" id="dc1"><div class="c-head"><span class="c-title">Lagerverwaltung Pro</span><span class="b b-upd">Update</span></div><div class="c-body" style="font-size:.63rem;color:#64748B;">Letzte Revision: v1.8.0 &nbsp;·&nbsp; vor 1 Woche</div></div>
+          <div class="card" id="dc2"><div class="c-head"><span class="c-title">HR-Portal 2.0</span><span class="b b-fix">Fehlerbehebung</span></div><div class="c-body" style="font-size:.63rem;color:#64748B;">Letzte Revision: v0.9.3 &nbsp;·&nbsp; vor 3 Wochen</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Sidebar-Navigation <span class="cap-dot"></span> Admin-Middleware <span class="cap-dot"></span> Dashboard-Kacheln</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 2 — Benutzerverwaltung  (v0.1.0)
+════════════════════════════════════ -->
+<div class="scene" id="s2">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.1.0</span><span class="vb-name">Benutzerverwaltung</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / admin / benutzer</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:180px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk in">Dashboard</div>
+        <div class="sb-lnk in">Projekte</div>
+        <div class="sb-sec">Admin</div>
+        <div class="sb-lnk cur in">Benutzerverwaltung</div>
+        <div class="sb-lnk in">Einstellungen</div>
+        <div class="sb-ver in">v0.1.0</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb">Admin &rsaquo; <b>Benutzerverwaltung</b></span><div class="tb-av">R</div></div>
+        <div class="pg in" style="padding:.85rem;">
+          <div class="card in">
+            <div class="c-head">
+              <span class="c-title">Benutzer</span>
+              <button style="padding:.25rem .6rem;background:var(--cyan);border:none;border-radius:5px;color:#fff;font-size:.6rem;font-weight:700;cursor:pointer;">+ Neu</button>
+            </div>
+            <div class="c-body" style="padding:0;">
+              <table class="tbl">
+                <thead><tr><th>Benutzername</th><th>Name</th><th>Globale Rolle</th><th>Status</th><th></th></tr></thead>
+                <tbody id="user-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-bg" id="modal2">
+      <div class="modal">
+        <div class="modal-title">Passwort zurücksetzen</div>
+        <div class="f-row"><span class="f-lbl">Neues Passwort</span><div class="f-inp focus"></div></div>
+        <div class="f-row"><span class="f-lbl">Bestätigen</span><div class="f-inp"></div></div>
+        <div style="display:flex;gap:.4rem;margin-top:.5rem;">
+          <button style="flex:1;height:26px;border:1px solid #E2E8F0;background:transparent;border-radius:5px;font-size:.62rem;cursor:pointer;color:#64748B;">Abbrechen</button>
+          <button style="flex:1;height:26px;border:none;background:var(--cyan);border-radius:5px;font-size:.62rem;font-weight:700;color:#fff;cursor:pointer;">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">7 Rollen <span class="cap-dot"></span> Modal-Passwort-Reset <span class="cap-dot"></span> is_active Toggle</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 3 — Revision Journal  (v0.2.0)
+════════════════════════════════════ -->
+<div class="scene" id="s3">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.2.0</span><span class="vb-name">Revision-Journal & Vorgängerkette</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / projects / 1</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk in">Dashboard</div>
+        <div class="sb-lnk cur in">Projekte</div>
+        <div class="sb-ver in">v0.2.0</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb"><b>Kundensystem Alpha</b></span><div class="tb-av">M</div></div>
+        <div class="pg in" style="padding:.75rem;">
+          <div class="fbar" id="fb3">
+            <div class="fbar-inp">🔍 &nbsp;<span style="color:#CBD5E1;font-size:.6rem;">Suche nach Version, Titel, Autor…</span></div>
+            <div class="fbar-btn b-rel">Release</div>
+            <div class="fbar-btn b-upd">Update</div>
+            <div class="fbar-btn b-fix">Fix</div>
+            <div class="fbar-btn b-chg">Änderung</div>
+          </div>
+          <div class="jn-wrap" id="jn3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Journal-Timeline <span class="cap-dot"></span> Vorgängerkette (kein N+1) <span class="cap-dot"></span> Cyan/Amber-Streifen</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 4 — Revision ersetzen + Strikethrough (v0.2.x)
+════════════════════════════════════ -->
+<div class="scene" id="s4">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.2.x</span><span class="vb-name">Revision ersetzen — Streichungslogik</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / projects / 1 / revisions / 3 / replace</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk cur in">Projekte</div>
+        <div class="sb-ver in">v0.2.x</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb">Kundensystem Alpha &rsaquo; <b>Revision v2.3.0 ersetzen</b></span><div class="tb-av">M</div></div>
+        <div class="pg in" style="padding:.75rem;">
+          <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:6px;padding:.45rem .7rem;font-size:.63rem;color:#92400E;margin-bottom:.65rem;display:flex;align-items:center;gap:.4rem;" id="replace-warn" style="opacity:0;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Übernommene Einträge können <strong style="margin:0 .2rem;">gestrichen</strong> werden, aber nicht gelöscht — für lückenlose Nachvollziehbarkeit.
+          </div>
+          <div style="font-size:.62rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem;">Übernommene Einträge aus v2.3.0</div>
+          <div id="replace-entries"></div>
+          <div style="font-size:.62rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin:.5rem 0 .4rem;" id="new-entries-label" style="opacity:0;">Neue Einträge</div>
+          <div id="new-entries"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Strikethrough-Toggle <span class="cap-dot"></span> removed-Flag im JSON <span class="cap-dot"></span> Rechtssichere Nachvollziehbarkeit</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 5 — 2FA Challenge  (v0.3.0)
+════════════════════════════════════ -->
+<div class="scene" id="s5">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.3.0</span><span class="vb-name">Zwei-Faktor-Authentifizierung</span></div>
+  <div style="width:100%;height:100%;background:linear-gradient(135deg,#060E18 0%,#0D1B2A 100%);display:flex;align-items:center;justify-content:center;">
+    <div id="tfa-box" style="background:#0D1B2A;border:1px solid rgba(6,182,212,.15);border-radius:14px;padding:2rem 1.75rem;width:340px;display:flex;flex-direction:column;align-items:center;gap:.8rem;box-shadow:0 32px 80px rgba(0,0,0,.7);">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.25rem;">
+        <div style="width:26px;height:26px;border-radius:5px;background:var(--cyan);"></div>
+        <span style="font-size:.85rem;font-weight:900;color:#F1F5F9;letter-spacing:.06em;">REVIGUARD</span>
+      </div>
+      <div style="width:52px;height:52px;border-radius:50%;background:rgba(6,182,212,.12);border:2px solid rgba(6,182,212,.35);display:flex;align-items:center;justify-content:center;" id="tfa-icon">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#06B6D4" stroke-width="1.5"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+      </div>
+      <div style="font-size:.95rem;font-weight:800;color:#F1F5F9;">Zwei-Faktor-Bestätigung</div>
+      <div style="font-size:.67rem;color:#64748B;text-align:center;line-height:1.5;">Gib den 6-stelligen Code aus deiner<br>Authenticator-App ein</div>
+      <div class="otp-row" id="otp5">
+        <div class="otp-cell" id="oc0"></div><div class="otp-cell cur" id="oc1"></div>
+        <div class="otp-cell" id="oc2"></div><div class="otp-cell" id="oc3"></div>
+        <div class="otp-cell" id="oc4"></div><div class="otp-cell" id="oc5"></div>
+      </div>
+      <div id="tfa-yk" style="width:100%;padding:.5rem .7rem;background:#162032;border:1px solid #1E3A5F;border-radius:7px;display:flex;align-items:center;gap:.5rem;opacity:0;transition:opacity .45s;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M16 12a4 4 0 0 1-8 0"/></svg>
+        <span style="font-size:.63rem;color:#94A3B8;">Oder YubiKey berühren…</span>
+      </div>
+      <div id="tfa-policy" style="font-size:.58rem;color:#1E3A5F;opacity:0;transition:opacity .4s;">Admin-Richtlinie: Beliebige 2FA-Methode erlaubt</div>
+    </div>
+  </div>
+  <div class="caption">TOTP via Authenticator-App <span class="cap-dot"></span> WebAuthn/YubiKey <span class="cap-dot"></span> Middleware RequirePendingTwoFactor</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 6 — Profil-Einstellungen  (v0.3.0)
+════════════════════════════════════ -->
+<div class="scene" id="s6">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.3.0</span><span class="vb-name">Profil-Einstellungen & Tabs</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / profile / settings?tab=darstellung</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk in">Dashboard</div>
+        <div class="sb-lnk in">Projekte</div>
+        <div class="sb-ver in">v0.3.0</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb"><b>Profil-Einstellungen</b></span><div class="tb-av">M</div></div>
+        <div class="pg in" style="padding:.85rem;">
+          <div class="card in">
+            <div class="c-body" style="padding:.5rem .8rem 0;">
+              <div class="tabs" id="prof-tabs">
+                <div class="tab on" id="tab-dar">Darstellung</div>
+                <div class="tab" id="tab-pw">Passwort</div>
+                <div class="tab" id="tab-2fa">2FA</div>
+              </div>
+              <div id="tab-content-dar">
+                <div style="font-size:.65rem;color:#64748B;margin-bottom:.6rem;">Wähle deine bevorzugte Ansicht:</div>
+                <div style="margin-bottom:.75rem;">
+                  <div style="font-size:.62rem;font-weight:700;color:#0D1B2A;margin-bottom:.4rem;">Dashboard-Ansicht</div>
+                  <div class="pref-grid" id="pref-dash">
+                    <div class="pref-tile on" id="pt0"><div class="pref-icon">⊞</div>Kacheln</div>
+                    <div class="pref-tile" id="pt1"><div class="pref-icon">☰</div>Liste</div>
+                  </div>
+                </div>
+                <div>
+                  <div style="font-size:.62rem;font-weight:700;color:#0D1B2A;margin-bottom:.4rem;">Revisionsansicht</div>
+                  <div class="pref-grid" id="pref-rev">
+                    <div class="pref-tile on" id="pt2"><div class="pref-icon">◈</div>Journal</div>
+                    <div class="pref-tile" id="pt3"><div class="pref-icon">▤</div>Liste</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Tab-System via URL-Parameter <span class="cap-dot"></span> Darstellung · Passwort · 2FA <span class="cap-dot"></span> Vorschau-Kacheln</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 7 — Öffentlicher Changelog  (v0.4.0)
+════════════════════════════════════ -->
+<div class="scene" id="s7">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.4.0</span><span class="vb-name">Öffentlicher Changelog</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / changelog</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk in">Dashboard</div>
+        <div class="sb-lnk in">Projekte</div>
+        <div class="sb-sec">Entwickler</div>
+        <div class="sb-lnk in" style="font-size:.63rem;">Changelog pflegen</div>
+        <div class="sb-ver in" style="color:var(--cyan);cursor:pointer;">v0.4.0 ↗</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb"><b>Versions-Changelog</b></span><div class="tb-av">M</div></div>
+        <div class="pg in" style="padding:.85rem;">
+          <div id="cl7"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Für alle eingeloggten User <span class="cap-dot"></span> Semantic Version Sort <span class="cap-dot"></span> Developer-Verwaltung</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 8 — Dark Mode Toggle  (v0.4.1)
+════════════════════════════════════ -->
+<div class="scene" id="s8">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.4.1</span><span class="vb-name">Dark / Light-Modus</span></div>
+  <div class="win" id="dm-win" style="width:860px;height:490px;transition:background .7s;">
+    <div class="win-bar" id="dm-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url" id="dm-url">localhost:8084 / dashboard</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;" id="dm-sb">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk cur in">Dashboard</div>
+        <div class="sb-lnk in">Projekte</div>
+        <div class="sb-ver in">v0.4.1</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in" id="dm-tb">
+          <span class="tb-crumb">Dashboard</span>
+          <span id="dm-sun" style="font-size:.75rem;">☀</span>
+          <div class="toggle-sw" id="dm-toggle"><div class="knob"></div></div>
+          <span id="dm-moon" style="font-size:.75rem;color:#334155;">🌙</span>
+          <div class="tb-av">M</div>
+        </div>
+        <div class="pg in" id="dm-pg" style="transition:background .7s;">
+          <div class="tiles" style="grid-template-columns:1fr 1fr 1fr;margin-bottom:.65rem;">
+            <div class="tile in" id="dm-t0"><div class="tile-num">3</div><div class="tile-lbl">Projekte</div></div>
+            <div class="tile in" id="dm-t1"><div class="tile-num">24</div><div class="tile-lbl">Revisionen</div></div>
+            <div class="tile in" id="dm-t2"><div class="tile-num">7</div><div class="tile-lbl">Benutzer</div></div>
+          </div>
+          <div class="card in" id="dm-c0"><div class="c-head"><span class="c-title" id="dm-ct0">Kundensystem Alpha</span><span class="b b-rel">Release</span></div><div class="c-body" style="font-size:.63rem;color:#64748B;">Letzte Revision: v2.4.1</div></div>
+          <div class="card in" id="dm-c1"><div class="c-head"><span class="c-title" id="dm-ct1">Lagerverwaltung Pro</span><span class="b b-upd">Update</span></div><div class="c-body" style="font-size:.63rem;color:#64748B;">Letzte Revision: v1.8.0</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">CSS-Variablen-System <span class="cap-dot"></span> localStorage (rg-theme) <span class="cap-dot"></span> Anti-Flash-Script im &lt;head&gt;</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 9 — Session-Timeout  (v0.5.0)
+════════════════════════════════════ -->
+<div class="scene" id="s9">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.5.0</span><span class="vb-name">Session-Timeout</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / dashboard</div></div>
+    <div style="display:flex;flex-direction:column;flex:1;overflow:hidden;position:relative;">
+      <div class="to-bar"><div class="to-fill" id="to-fill" style="width:100%;background:#22C55E;"></div></div>
+      <div class="win-body" style="flex:1;">
+        <div class="sb in" style="width:175px;">
+          <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+          <div class="sb-lnk cur in">Dashboard</div>
+          <div class="sb-sec">Admin</div>
+          <div class="sb-lnk in">Einstellungen</div>
+          <div class="sb-ver in">v0.5.0</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+          <div class="tb in" id="to-tb">
+            <span class="tb-crumb">Dashboard</span>
+            <span id="to-n" style="font-size:.63rem;color:#94A3B8;opacity:0;transition:opacity .4s;">⏱ 14:32</span>
+            <span id="to-w" style="font-size:.63rem;color:#F59E0B;font-weight:700;opacity:0;transition:opacity .4s;">⚠ 01:45</span>
+            <span id="to-c" style="font-size:.63rem;color:#EF4444;font-weight:700;opacity:0;transition:opacity .4s;">🔴 00:18</span>
+            <div class="tb-av">M</div>
+          </div>
+          <div class="pg in" style="padding:.85rem;">
+            <div class="card in">
+              <div class="c-head"><span class="c-title">Sicherheit — Session-Timeout</span></div>
+              <div class="c-body">
+                <div class="f-row"><span class="f-lbl">Timeout in Minuten (0 = deaktiviert)</span><div class="f-inp" style="color:#0D1B2A;">15</div></div>
+                <div style="display:flex;gap:.35rem;margin-bottom:.55rem;">
+                  <span class="b b-upd" style="cursor:pointer;padding:.2rem .4rem;">5</span>
+                  <span class="b b-upd" style="cursor:pointer;padding:.2rem .4rem;">10</span>
+                  <span class="b b-rel" style="cursor:pointer;padding:.2rem .4rem;font-weight:800;">15</span>
+                  <span class="b b-upd" style="cursor:pointer;padding:.2rem .4rem;">30</span>
+                  <span class="b b-dis" style="cursor:pointer;padding:.2rem .4rem;">Aus</span>
+                </div>
+                <div style="background:#FFFBEB;border:1px solid #FCD34D;border-radius:5px;padding:.4rem .6rem;font-size:.62rem;color:#92400E;">⚠ Nutzer wird nach 15 Min. Inaktivität automatisch abgemeldet.</div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.5rem;margin-top:.4rem;" id="to-legend">
+              <div class="tile in" style="border-color:#E2E8F0;"><div style="font-size:.58rem;color:#94A3B8;margin-bottom:.2rem;font-weight:700;">Normal</div><div style="font-size:.7rem;color:#64748B;">⏱ 14:32</div></div>
+              <div class="tile in" style="background:#FFFBEB;border-color:#FCD34D;"><div style="font-size:.58rem;color:#B45309;margin-bottom:.2rem;font-weight:700;">Warnung ≤ 2 Min</div><div style="font-size:.7rem;color:#B45309;">⚠ 01:45</div></div>
+              <div class="tile in" style="background:#FEF2F2;border-color:#FCA5A5;"><div style="font-size:.58rem;color:#DC2626;margin-bottom:.2rem;font-weight:700;">Kritisch ≤ 30 Sek</div><div style="font-size:.7rem;color:#DC2626;">🔴 00:18</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Countdown-Timer <span class="cap-dot"></span> Normal · Warnung · Kritisch <span class="cap-dot"></span> Jede Aktion setzt Timer zurück</div>
+</div>
+
+<!-- ═══════════════════════════════════
+     SCENE 10 — Neue Badge-Typen  (v0.5.1)
+════════════════════════════════════ -->
+<div class="scene" id="s10">
+  <div class="ver-badge"><div class="vb-dot"></div><span class="vb-num">v0.5.1</span><span class="vb-name">Neue Badge-Typen & Feinschliff</span></div>
+  <div class="win" style="width:860px;height:490px;">
+    <div class="win-bar"><div class="wb-r"></div><div class="wb-y"></div><div class="wb-g"></div><div class="wb-url">localhost:8084 / projects / 1 / revisions / create</div></div>
+    <div class="win-body">
+      <div class="sb in" style="width:175px;">
+        <div class="sb-logo"><div class="sb-logo-sq"></div><span class="sb-logo-txt">ReviGuard</span></div>
+        <div class="sb-lnk cur in">Projekte</div>
+        <div class="sb-ver in">v0.5.1</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+        <div class="tb in"><span class="tb-crumb">Kundensystem Alpha &rsaquo; <b>Neue Revision</b></span><span style="font-size:.65rem;color:var(--cyan);font-weight:700;">v3.1.0</span><div class="tb-av">M</div></div>
+        <div class="pg in" style="padding:.85rem;">
+          <div class="card in">
+            <div class="c-head"><span class="c-title">Typ hinzufügen</span><span style="font-size:.6rem;color:#94A3B8;">Klicke einen Typ an</span></div>
+            <div class="c-body">
+              <div class="bb-wrap" id="bb10"></div>
+              <div style="font-size:.58rem;color:#94A3B8;margin-top:.4rem;">✦ Neu in v0.5.1: Deaktiviert & Broken</div>
+            </div>
+          </div>
+          <div style="font-size:.62rem;font-weight:700;color:#94A3B8;text-transform:uppercase;letter-spacing:.08em;margin:.25rem 0 .4rem;">Eintrags-Vorschau</div>
+          <div id="ep10"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="caption">Release zuerst <span class="cap-dot"></span> Deaktiviert (grau) · Broken (schwarz) <span class="cap-dot"></span> Tooltip-Delay 0,7 s</div>
+</div>
+
+<!-- nav -->
+<div id="dots"></div>
+<div id="nav">
+  <button class="nbtn" id="btn-prev">‹</button>
+  <button class="nbtn" id="btn-play">⏸</button>
+  <button class="nbtn" id="btn-next">›</button>
+</div>
+
+<script>
+// ─── data ────────────────────────────────────────────────────────────────────
+const SCENES = 11;
+const SCENE_LABELS = [
+  ['v0.1.0','Login-Seite'], ['v0.1.0','App-Shell'], ['v0.1.0','Benutzerverwaltung'],
+  ['v0.2.0','Journal'], ['v0.2.x','Revision ersetzen'], ['v0.3.0','2FA'],
+  ['v0.3.0','Profil'], ['v0.4.0','Changelog'], ['v0.4.1','Dark-Mode'],
+  ['v0.5.0','Session-Timeout'], ['v0.5.1','Badge-Typen'],
+];
+const DURATIONS = [6500,6000,6500,7000,7000,6000,6000,6500,7000,7500,7000];
+
+let cur = 0, playing = true, sceneTimer = null, fillTimer = null;
+
+// ─── dots ─────────────────────────────────────────────────────────────────────
+const dotsEl = document.getElementById('dots');
+for (let i = 0; i < SCENES; i++) {
+  const d = document.createElement('div');
+  d.className = 'dot';
+  d.title = SCENE_LABELS[i].join(' — ');
+  d.addEventListener('click', () => { clearScheduled(); goTo(i); });
+  dotsEl.appendChild(d);
+}
+
+function updateUI() {
+  document.querySelectorAll('.dot').forEach((d,i) => d.classList.toggle('on', i===cur));
+  document.getElementById('scene-fill').style.width = ((cur+1)/SCENES*100)+'%';
+}
+
+// ─── transition ───────────────────────────────────────────────────────────────
+const transEl = document.getElementById('trans');
+const transVer = document.getElementById('trans-ver');
+const transName = document.getElementById('trans-name');
+const transFill = document.getElementById('trans-bar-fill');
+
+async function transitionTo(idx) {
+  // fade out
+  document.getElementById(`s${cur}`).classList.remove('active');
+  transVer.textContent = SCENE_LABELS[idx][0];
+  transName.textContent = SCENE_LABELS[idx][1].toUpperCase();
+  transFill.style.transition = 'none'; transFill.style.width = '0%';
+  transEl.classList.add('show');
+  await dl(80);
+  transFill.style.transition = 'width .55s ease';
+  transFill.style.width = '100%';
+  await dl(650);
+  transEl.classList.remove('show');
+  cur = idx;
+  document.getElementById(`s${cur}`).classList.add('active');
+  updateUI();
+  await dl(180);
+  runScene(cur);
+}
+
+function goTo(idx) {
+  clearScheduled();
+  transitionTo(idx).then(() => { if (playing) schedule(); });
+}
+function next() { goTo((cur+1) % SCENES); }
+function prev() { goTo((cur-1+SCENES) % SCENES); }
+
+function clearScheduled() { clearTimeout(sceneTimer); clearInterval(fillTimer); }
+
+function schedule() {
+  clearScheduled();
+  const dur = DURATIONS[cur];
+  // animate scene fill
+  const sf = document.getElementById('scene-fill');
+  // timer that fires after scene duration
+  sceneTimer = setTimeout(next, dur);
+}
+
+function setPlaying(v) {
+  playing = v;
+  document.getElementById('btn-play').textContent = playing ? '⏸' : '▶';
+  if (playing) schedule(); else clearScheduled();
+}
+
+document.getElementById('btn-next').addEventListener('click', next);
+document.getElementById('btn-prev').addEventListener('click', prev);
+document.getElementById('btn-play').addEventListener('click', () => setPlaying(!playing));
+document.addEventListener('keydown', e => {
+  if (e.key==='ArrowRight') next();
+  else if (e.key==='ArrowLeft') prev();
+  else if (e.key===' ') { e.preventDefault(); setPlaying(!playing); }
+});
+
+// ─── helpers ──────────────────────────────────────────────────────────────────
+function dl(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function building(txt) {
+  const el = document.getElementById('building');
+  el.textContent = txt; el.classList.add('show');
+}
+function clearBuilding() { document.getElementById('building').classList.remove('show'); }
+
+// ─── scene runners ────────────────────────────────────────────────────────────
+async function runScene(i) {
+  const fns = [s0,s1,s2,s3,s4,s5,s6,s7,s8,s9,s10];
+  fns[i] && fns[i]();
+}
+
+// S0: Login
+async function s0() {
+  const fi = document.getElementById('l-fi');
+  const ids = ['l-form','l-logo','l-fu','l-fp','l-btn','l-foot'];
+  ids.forEach(id => { const e=document.getElementById(id); if(e){ e.style.opacity='0'; e.classList && e.classList.remove('in'); }});
+  document.getElementById('l-vis').style.opacity = '0';
+  fi.innerHTML = '';
+
+  building('Login-Seite wird geladen…');
+  await dl(150);
+  document.getElementById('l-vis').style.opacity = '1';
+  document.getElementById('l-form').style.opacity = '1';
+  await dl(500);
+  document.getElementById('l-logo').style.opacity = '1';
+  await dl(400);
+  document.getElementById('l-fu').style.opacity = '1';
+  await dl(300);
+  fi.innerHTML = '<span class="cursor"></span>';
+  building('Benutzername wird eingetippt…');
+  for (const c of 'RGAdmin') {
+    await dl(90);
+    fi.innerHTML = fi.innerHTML.replace('<span class="cursor"></span>','') + c + '<span class="cursor"></span>';
+  }
+  await dl(250);
+  document.getElementById('l-fp').style.opacity = '1';
+  await dl(400);
+  document.getElementById('l-btn').classList.add('in');
+  await dl(300);
+  document.getElementById('l-foot').style.opacity = '1';
+  clearBuilding();
+}
+
+// S1: Dashboard
+async function s1() {
+  const sb = document.getElementById('sb1');
+  const tb = document.getElementById('tb1');
+  const pg = document.getElementById('pg1');
+  sb.classList.remove('in'); tb.classList.remove('in'); pg.classList.remove('in');
+  ['sl1-0','sl1-1','sl1-2','sl1-3'].forEach(id=>{ const e=document.getElementById(id); e.classList.remove('in'); e.style.opacity='0'; e.style.transform='translateX(-8px)'; });
+  document.getElementById('sl1-admin-sec').style.opacity='0';
+  document.getElementById('sl1-ver').style.opacity='0';
+  ['ti0','ti1','ti2','dc0','dc1','dc2'].forEach(id=>document.getElementById(id).classList.remove('in'));
+
+  building('Sidebar wird aufgebaut…');
+  await dl(150); sb.classList.add('in');
+  await dl(120);
+  for (const id of ['sl1-0','sl1-1']) { document.getElementById(id).classList.add('in'); await dl(120); }
+  await dl(250);
+  building('Admin-Bereich wird ergänzt…');
+  document.getElementById('sl1-admin-sec').style.opacity='1';
+  for (const id of ['sl1-2','sl1-3']) { const e=document.getElementById(id); e.style.opacity='1'; e.style.transform='translateX(0)'; await dl(130); }
+  document.getElementById('sl1-ver').style.opacity='1';
+  await dl(200);
+  tb.classList.add('in');
+  await dl(250);
+  building('Dashboard-Inhalt wird geladen…');
+  pg.classList.add('in');
+  await dl(200);
+  for (const id of ['ti0','ti1','ti2']) { document.getElementById(id).classList.add('in'); await dl(130); }
+  await dl(150);
+  for (const id of ['dc0','dc1','dc2']) { document.getElementById(id).classList.add('in'); await dl(200); }
+  clearBuilding();
+}
+
+// S2: Benutzerverwaltung
+const USERS = [
+  ['RGAdmin','System-Admin','system_admin','#4ADE80','aktiv'],
+  ['m.mustermann','Max Mustermann','administrator','#A78BFA','aktiv'],
+  ['l.meier','Lisa Meier','projektleiter','#60A5FA','aktiv'],
+  ['t.mueller','Tom Müller','editor','#FCD34D','aktiv'],
+  ['a.klein','Anna Klein','viewer','#34D399','inaktiv'],
+];
+async function s2() {
+  const tbody = document.getElementById('user-tbody');
+  const modal = document.getElementById('modal2');
+  tbody.innerHTML = ''; modal.classList.remove('in');
+
+  building('Benutzertabelle wird befüllt…');
+  await dl(300);
+  for (const [un,name,role,rc,status] of USERS) {
+    await dl(220);
+    const tr = document.createElement('tr');
+    tr.className = 'tbl-tr';
+    tr.innerHTML = `<td style="font-weight:600;">${un}</td><td>${name}</td>
+      <td><span class="b" style="background:${rc}22;color:${rc};border-color:${rc}55;">${role}</span></td>
+      <td><span class="b" style="${status==='aktiv'?'background:#DCFCE7;color:#15803D;border-color:#86EFAC':'background:#F1F5F9;color:#64748B;border-color:#CBD5E1'}">${status}</span></td>
+      <td style="text-align:right;"><span style="font-size:.58rem;color:#06B6D4;cursor:pointer;">PW reset</span></td>`;
+    tbody.appendChild(tr);
+    await dl(30);
+    tr.classList.add('in');
+  }
+  await dl(600);
+  building('Passwort-Reset-Modal öffnet sich…');
+  modal.classList.add('in');
+  await dl(2000);
+  modal.classList.remove('in');
+  clearBuilding();
+}
+
+// S3: Journal
+const JN_DATA = [
+  {ver:'v2.4.1', badges:['b-ver','b-rel','b-upd'], title:'Quartalsupdade Q1 2026', meta:'Max Mustermann · 22. Mär 2026', pred:false, spin:true},
+  {ver:'v2.3.0', badges:['b-ver','b-fix'], title:'Bugfix: Datenbankverbindung stabilisiert', meta:'Lisa Meier · 15. Mär 2026', pred:false, spin:false},
+  {ver:'v2.2.1', badges:['b-ver','b-upd'], title:'Schnittstellenanpassung API v3', meta:'Lisa Meier · 8. Mär 2026', pred:true, spin:false},
+  {ver:'v2.2.0', badges:['b-ver','b-chg'], title:'UI-Überarbeitung Hauptmenü', meta:'Tom Müller · 1. Mär 2026', pred:false, spin:false},
+  {ver:'v2.1.0', badges:['b-ver','b-rel'], title:'Release: Druckmodul integriert', meta:'M. Mustermann · 12. Feb 2026', pred:false, spin:false},
+];
+async function s3() {
+  const wrap = document.getElementById('jn3');
+  const fb = document.getElementById('fb3');
+  wrap.innerHTML = ''; fb.classList.remove('in');
+
+  building('Suchleiste erscheint…');
+  await dl(250); fb.classList.add('in');
+  await dl(350);
+  building('Revisionen laden…');
+  for (const [idx,d] of JN_DATA.entries()) {
+    await dl(320);
+    const row = document.createElement('div');
+    row.className = 'jn-row';
+    const bgs = d.badges.map(b => `<span class="b ${b}">${b==='b-ver'?d.ver:b==='b-rel'?'Release':b==='b-upd'?'Update':b==='b-fix'?'Fehlerbehebung':b==='b-chg'?'Änderung':'Hotfix'}</span>`).join('');
+    row.innerHTML = `
+      <div class="jn-spine">
+        <div class="jn-dot${d.spin?'':' dim'}"></div>
+        ${idx < JN_DATA.length-1 ? '<div class="jn-vl"></div>' : ''}
+      </div>
+      <div class="jn-card${d.pred?' pred':''}">
+        ${d.pred?`<div style="font-size:.55rem;color:#94A3B8;display:flex;align-items:center;gap:.3rem;margin-bottom:.2rem;">
+          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3"/></svg>
+          Vorgänger</div>`:''}
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.15rem;">${bgs}</div>
+        <div class="jn-t">${d.title}</div>
+        <div class="jn-m">${d.meta}</div>
+      </div>`;
+    wrap.appendChild(row);
+    await dl(40);
+    row.classList.add('in');
+  }
+  clearBuilding();
+}
+
+// S4: Replace / Strikethrough
+async function s4() {
+  const re = document.getElementById('replace-entries');
+  const ne = document.getElementById('new-entries');
+  const nel = document.getElementById('new-entries-label');
+  const warn = document.getElementById('replace-warn');
+  re.innerHTML = ''; ne.innerHTML = ''; warn.style.opacity='0'; nel.style.opacity='0';
+
+  building('Bestehende Revision wird geladen…');
+  await dl(250);
+  warn.style.transition='opacity .4s'; warn.style.opacity='1';
+  await dl(500);
+
+  const existing = [
+    {type:'b-rel', label:'Release', text:'Version 2.3.0 freigegeben — alle Tests bestanden'},
+    {type:'b-fix', label:'Fehlerbehebung', text:'Datenbankverbindung unter Last stabilisiert'},
+    {type:'b-upd', label:'Update', text:'API-Endpunkte auf v3-Spezifikation aktualisiert'},
+  ];
+  building('Einträge werden übernommen…');
+  for (const e of existing) {
+    await dl(280);
+    const row = document.createElement('div');
+    row.className = 'ep-row';
+    row.innerHTML = `<span class="b ${e.type}" style="flex-shrink:0;">${e.label}</span>
+      <span class="ep-txt">${e.text}</span>
+      <button style="padding:.15rem .4rem;border:1px solid #E2E8F0;border-radius:4px;background:none;font-size:.58rem;color:#94A3B8;cursor:pointer;white-space:nowrap;flex-shrink:0;">Streichen</button>`;
+    re.appendChild(row);
+    await dl(40);
+    row.classList.add('in');
+  }
+  await dl(700);
+  building('Eintrag wird gestrichen…');
+  // strike the second entry
+  const rows = re.querySelectorAll('.ep-row');
+  const target = rows[1];
+  target.style.background = 'rgba(239,68,68,.06)';
+  target.style.borderColor = 'rgba(239,68,68,.2)';
+  const txt = target.querySelector('.ep-txt');
+  txt.classList.add('struck');
+  const btn = target.querySelector('button');
+  btn.textContent = 'Wiederherstellen';
+  btn.style.color = '#DC2626'; btn.style.borderColor = 'rgba(239,68,68,.3)';
+  const chip = document.createElement('span');
+  chip.className = 'streak-chip'; chip.textContent = 'Gestrichen';
+  target.insertBefore(chip, txt);
+  await dl(700);
+  nel.style.transition='opacity .4s'; nel.style.opacity='1';
+  building('Neuen Eintrag hinzufügen…');
+  const newRow = document.createElement('div');
+  newRow.className = 'ep-row';
+  newRow.innerHTML = `<span class="b b-upd" style="flex-shrink:0;">Update</span>
+    <span class="ep-txt" id="new-ep-txt"></span>
+    <button style="padding:.15rem .4rem;border:1px solid #E2E8F0;border-radius:4px;background:none;font-size:.58rem;color:#94A3B8;cursor:pointer;white-space:nowrap;flex-shrink:0;">✕</button>`;
+  ne.appendChild(newRow);
+  await dl(40);
+  newRow.classList.add('in');
+  await dl(200);
+  const ntxt = document.getElementById('new-ep-txt');
+  ntxt.innerHTML = '<span class="cursor"></span>';
+  for (const c of 'Performance-Optimierung: Ladezeit um 40% reduziert') {
+    await dl(35);
+    ntxt.innerHTML = ntxt.innerHTML.replace('<span class="cursor"></span>','') + c + '<span class="cursor"></span>';
+  }
+  clearBuilding();
+}
+
+// S5: 2FA
+async function s5() {
+  ['oc0','oc1','oc2','oc3','oc4','oc5'].forEach(id=>{ const e=document.getElementById(id); e.classList.remove('in'); e.textContent=''; e.classList.remove('cur'); });
+  document.getElementById('tfa-yk').style.opacity='0';
+  document.getElementById('tfa-policy').style.opacity='0';
+
+  building('2FA-Challenge erscheint…');
+  await dl(500);
+  document.getElementById('oc1').classList.add('cur');
+  const codes = ['4','2','●','●','●','●'];
+  for (let i=0;i<6;i++) {
+    await dl(230);
+    const oc = document.getElementById(`oc${i}`);
+    oc.classList.add('in'); oc.classList.remove('cur');
+    oc.textContent = codes[i];
+    if (i<5) document.getElementById(`oc${i+1}`).classList.add('cur');
+  }
+  await dl(450);
+  building('YubiKey-Option eingeblendet…');
+  document.getElementById('tfa-yk').style.opacity='1';
+  await dl(450);
+  document.getElementById('tfa-policy').style.opacity='1';
+  clearBuilding();
+}
+
+// S6: Profil-Einstellungen
+async function s6() {
+  ['pt0','pt1','pt2','pt3'].forEach(id=>document.getElementById(id).classList.remove('in'));
+  const tabs = document.getElementById('prof-tabs');
+  tabs.style.opacity='0';
+
+  building('Profil-Einstellungen laden…');
+  await dl(300);
+  tabs.style.transition='opacity .4s'; tabs.style.opacity='1';
+  await dl(400);
+  building('Darstellungs-Kacheln erscheinen…');
+  for (const id of ['pt0','pt1']) { document.getElementById(id).classList.add('in'); await dl(180); }
+  await dl(200);
+  for (const id of ['pt2','pt3']) { document.getElementById(id).classList.add('in'); await dl(180); }
+  await dl(700);
+  building('Tab wechselt zu „Passwort"…');
+  document.getElementById('tab-dar').classList.remove('on');
+  document.getElementById('tab-pw').classList.add('on');
+  await dl(800);
+  building('Tab wechselt zu „2FA"…');
+  document.getElementById('tab-pw').classList.remove('on');
+  document.getElementById('tab-2fa').classList.add('on');
+  await dl(1000);
+  document.getElementById('tab-2fa').classList.remove('on');
+  document.getElementById('tab-dar').classList.add('on');
+  clearBuilding();
+}
+
+// S7: Changelog
+const CL_DATA = [
+  {ver:'v0.5.1', title:'Neue Badge-Typen & UI-Feinschliff', open:false, items:['Neue Typen: Deaktiviert (grau) und Broken (schwarz)','Release-Badge steht jetzt an erster Stelle','Tooltip-Verzögerung auf 0,7 Sekunden angepasst']},
+  {ver:'v0.5.0', title:'Automatische Abmeldung bei Inaktivität', open:true, items:['Bei Inaktivität wird die Sitzung automatisch beendet','Countdown-Timer in der Navigationsleiste sichtbar','Warnung bei unter 2 Minuten verbleibender Zeit']},
+  {ver:'v0.4.1', title:'Dark- & Light-Modus', open:false, items:['Umschaltung zwischen hellem und dunklem Design']},
+  {ver:'v0.4.0', title:'Öffentlicher Versions-Changelog', open:false, items:['Neue Seite mit allen veröffentlichten Änderungen']},
+];
+async function s7() {
+  const cl = document.getElementById('cl7');
+  cl.innerHTML = '';
+
+  building('Changelog-Einträge erscheinen…');
+  await dl(250);
+  for (const d of CL_DATA) {
+    await dl(300);
+    const el = document.createElement('div');
+    el.className = 'cl-e';
+    el.innerHTML = `
+      <div class="cl-head">
+        <span class="cl-ver">${d.ver}</span>
+        <span class="cl-title">${d.title}</span>
+        <span class="cl-tag pub">Veröffentlicht</span>
+        <span style="font-size:.7rem;color:#94A3B8;">${d.open?'▲':'▼'}</span>
+      </div>
+      ${d.open ? `<div class="cl-body">${d.items.map(i=>`<div class="cl-li">${i}</div>`).join('')}</div>` : ''}`;
+    cl.appendChild(el);
+    await dl(40);
+    el.classList.add('in');
+  }
+  clearBuilding();
+}
+
+// S8: Dark Mode
+async function s8() {
+  const win=document.getElementById('dm-win'), bar=document.getElementById('dm-bar');
+  const pg=document.getElementById('dm-pg'), tb=document.getElementById('dm-tb');
+  const tog=document.getElementById('dm-toggle');
+  const sun=document.getElementById('dm-sun'), moon=document.getElementById('dm-moon');
+  const tiles=['dm-t0','dm-t1','dm-t2'];
+  const cards=['dm-c0','dm-c1'];
+  const cts=['dm-ct0','dm-ct1'];
+
+  // reset to light
+  win.style.background='#F1F5F9'; bar.style.background='#E2E8F0'; bar.style.borderColor='';
+  pg.style.background=''; tb.style.background='#fff'; tb.style.borderColor='#E2E8F0';
+  tog.classList.remove('on'); sun.style.color='#F59E0B'; moon.style.color='#334155';
+  tiles.forEach(id=>{const e=document.getElementById(id);e.style.background='#fff';e.style.borderColor='#E2E8F0';});
+  cards.forEach(id=>{const e=document.getElementById(id);e.style.background='#fff';e.style.borderColor='#E2E8F0';});
+  cts.forEach(id=>{document.getElementById(id).style.color='#0D1B2A';});
+
+  building('Light-Modus ist aktiv…');
+  await dl(1800);
+  building('Dark-Mode wird aktiviert…');
+  tog.classList.add('on');
+  await dl(150);
+  // animate dark transition
+  win.style.transition='background .65s'; win.style.background='#0F1923';
+  bar.style.transition='background .65s,border-color .65s'; bar.style.background='#0A1219'; bar.style.borderColor='#0A1219';
+  pg.style.transition='background .65s'; pg.style.background='#0F1923';
+  tb.style.transition='background .65s,border-color .65s'; tb.style.background='#0F1923'; tb.style.borderColor='#1E293B';
+  sun.style.color='#334155'; moon.style.color='#06B6D4';
+  await dl(200);
+  tiles.forEach(id=>{const e=document.getElementById(id);e.style.transition='background .6s,border-color .6s';e.style.background='#1E293B';e.style.borderColor='#334155';});
+  cards.forEach(id=>{const e=document.getElementById(id);e.style.transition='background .6s,border-color .6s';e.style.background='#1E293B';e.style.borderColor='#334155';});
+  cts.forEach(id=>{const e=document.getElementById(id);e.style.transition='color .6s';e.style.color='#F1F5F9';});
+  await dl(800);
+  clearBuilding();
+  await dl(2500);
+  // switch back
+  building('Zurück zu Light-Modus…');
+  tog.classList.remove('on');
+  win.style.background='#F1F5F9'; bar.style.background='#E2E8F0';
+  pg.style.background=''; tb.style.background='#fff'; tb.style.borderColor='#E2E8F0';
+  sun.style.color='#F59E0B'; moon.style.color='#334155';
+  tiles.forEach(id=>{const e=document.getElementById(id);e.style.background='#fff';e.style.borderColor='#E2E8F0';});
+  cards.forEach(id=>{const e=document.getElementById(id);e.style.background='#fff';e.style.borderColor='#E2E8F0';});
+  cts.forEach(id=>{document.getElementById(id).style.color='#0D1B2A';});
+  clearBuilding();
+}
+
+// S9: Session Timeout
+async function s9() {
+  const fill=document.getElementById('to-fill');
+  const n=document.getElementById('to-n'), w=document.getElementById('to-w'), c=document.getElementById('to-c');
+  fill.style.transition='none'; fill.style.width='100%'; fill.style.background='#22C55E';
+  n.style.opacity='0'; w.style.opacity='0'; c.style.opacity='0';
+
+  building('Session läuft — Timer normal…');
+  await dl(400);
+  n.style.opacity='1';
+  fill.style.transition='width 3s linear';
+  fill.style.width='18%';
+  await dl(1800);
+  fill.style.background='#F59E0B';
+  n.style.opacity='0'; w.style.opacity='1';
+  building('Warnung: unter 2 Minuten!');
+  w.classList.add('pulsing');
+  await dl(1800);
+  fill.style.background='#EF4444';
+  w.style.opacity='0'; c.style.opacity='1';
+  building('Kritisch: unter 30 Sekunden!');
+  c.classList.add('pulsing-fast');
+  await dl(1500);
+  c.classList.remove('pulsing-fast'); w.classList.remove('pulsing');
+  clearBuilding();
+}
+
+// S10: Badge-Typen
+const BB_DATA = [
+  {cls:'b-rel', label:'+ Release', bg:'#DCFCE7', color:'#15803D', border:'#86EFAC'},
+  {cls:'b-upd', label:'+ Update',  bg:'#DBEAFE', color:'#1D4ED8', border:'#93C5FD'},
+  {cls:'b-chg', label:'+ Änderung', bg:'#FEF3C7', color:'#B45309', border:'#FCD34D'},
+  {cls:'b-fix', label:'+ Fehlerbehebung', bg:'#FEE2E2', color:'#DC2626', border:'#FCA5A5'},
+  {cls:'b-hot', label:'+ Hotfix', bg:'#FEE2E2', color:'#DC2626', border:'#FCA5A5'},
+  {cls:'b-dis', label:'+ Deaktiviert ✦', bg:'#F1F5F9', color:'#64748B', border:'#CBD5E1'},
+  {cls:'b-brk', label:'+ Broken ✦', bg:'#1E293B', color:'#F1F5F9', border:'#475569'},
+];
+const EP_DATA = [
+  {cls:'b-rel', label:'Release', txt:'Neue Hauptversion mit überarbeiteter Benutzeroberfläche', removed:false},
+  {cls:'b-dis', label:'Deaktiviert', txt:'Legacy-Export-Funktion vorübergehend deaktiviert', removed:false},
+  {cls:'b-brk', label:'Broken', txt:'PDF-Export unter Windows schlägt fehl (bekannt)', removed:false},
+];
+async function s10() {
+  const bb=document.getElementById('bb10'), ep=document.getElementById('ep10');
+  bb.innerHTML=''; ep.innerHTML='';
+
+  building('Badge-Buttons erscheinen…');
+  await dl(250);
+  for (const [idx,d] of BB_DATA.entries()) {
+    await dl(idx < 5 ? 110 : 220);
+    const btn = document.createElement('div');
+    btn.className = 'bb-btn';
+    btn.style.cssText = `background:${d.bg};color:${d.color};border-color:${d.border};`;
+    btn.textContent = d.label;
+    bb.appendChild(btn);
+    await dl(30);
+    btn.classList.add('in');
+    if (idx === 4) building('Neue Typen hinzugefügt: Deaktiviert & Broken ✦');
+  }
+  await dl(500);
+  building('Eintrags-Vorschau lädt…');
+  for (const d of EP_DATA) {
+    await dl(320);
+    const row = document.createElement('div');
+    row.className = 'ep-row';
+    row.innerHTML = `<span class="b ${d.cls}" style="flex-shrink:0;">${d.label}</span>
+      <span class="ep-txt">${d.txt}</span>`;
+    ep.appendChild(row);
+    await dl(40);
+    row.classList.add('in');
+  }
+  clearBuilding();
+}
+
+// ─── init ─────────────────────────────────────────────────────────────────────
+updateUI();
+document.getElementById('s0').classList.add('active');
+runScene(0);
+setTimeout(() => { if (playing) schedule(); }, 500);
+</script>
+</body>
+</html>
