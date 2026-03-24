@@ -1,15 +1,66 @@
+# ── Laravel ───────────────────────────────────────────────────────
 .env
-*.db
-node_modules/
+.env.backup
+.env.production
 vendor/
-storage/*.key
+node_modules/
+public/hot
+public/storage
+
+# Storage (nur .gitkeep behalten)
 storage/app/*
+storage/logs/*
 storage/framework/cache/*
 storage/framework/sessions/*
 storage/framework/views/*
-storage/logs/*
+storage/*.key
 !storage/**/.gitkeep
+
+# Bootstrap Cache
 bootstrap/cache/*
 !bootstrap/cache/.gitkeep
-public/hot
-public/storage
+
+# ── Docker ────────────────────────────────────────────────────────
+# Wird vom Install-Script generiert
+docker-compose.override.yml
+
+# ── Release-Build ─────────────────────────────────────────────────
+dist/
+install.log
+/tmp/reviguard-*
+
+# Datenbank-Backups
+backups/
+*.sql
+*.sql.gz
+
+# ── Betriebssystem ────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ── IDEs & Editoren ───────────────────────────────────────────────
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.swp
+*.swo
+*~
+.nova/
+
+# ── PHP ───────────────────────────────────────────────────────────
+.phpunit.result.cache
+.phpunit.cache/
+.php-cs-fixer.cache
+.php_cs.cache
+
+# ── Logs & temporäre Dateien ──────────────────────────────────────
+*.log
+*.cache
+*.tmp

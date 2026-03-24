@@ -1,0 +1,4 @@
+ Git Push Befehl:
+  git -C /home/michel/project/reviguard push
+  oder einfach im Projektordner:
+  cd /home/michel/project/reviguard && git push
