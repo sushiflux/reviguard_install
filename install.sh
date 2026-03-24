@@ -150,20 +150,29 @@ detect_os() {
 }
 
 # ── Docker / Compose ──────────────────────────────────────────────
-DOCKER_SUDO=""; DOCKER_COMPOSE_CMD=""
+DOCKER_SUDO=""
+DOCKER_COMPOSE_CMD=()
 
 resolve_docker_cmd() {
-  local sudo_prefix="${1:-}"
-  DOCKER_COMPOSE_CMD=""
-  if $sudo_prefix docker compose version &>/dev/null 2>&1; then
-    DOCKER_COMPOSE_CMD="${sudo_prefix:+sudo }docker compose"
-  elif $sudo_prefix docker-compose version &>/dev/null 2>&1; then
-    DOCKER_COMPOSE_CMD="${sudo_prefix:+sudo }docker-compose"
+  local use_sudo="${1:-}"
+  DOCKER_COMPOSE_CMD=()
+  if [[ -n "$use_sudo" ]]; then
+    if sudo docker compose version &>/dev/null 2>&1; then
+      DOCKER_COMPOSE_CMD=(sudo docker compose)
+    elif sudo docker-compose version &>/dev/null 2>&1; then
+      DOCKER_COMPOSE_CMD=(sudo docker-compose)
+    fi
+  else
+    if docker compose version &>/dev/null 2>&1; then
+      DOCKER_COMPOSE_CMD=(docker compose)
+    elif docker-compose version &>/dev/null 2>&1; then
+      DOCKER_COMPOSE_CMD=(docker-compose)
+    fi
   fi
 }
 
-DC() { $DOCKER_COMPOSE_CMD --project-directory "$INSTALL_DIR" "$@"; }
-DK() { ${DOCKER_SUDO:-} docker "$@"; }
+DC() { "${DOCKER_COMPOSE_CMD[@]}" --project-directory "$INSTALL_DIR" "$@"; }
+DK() { ${DOCKER_SUDO:+sudo} docker "$@"; }
 
 # ── Docker installieren ────────────────────────────────────────────
 install_docker() {
@@ -286,7 +295,7 @@ fi
 
 # Docker Compose prüfen
 resolve_docker_cmd "$DOCKER_SUDO"
-if [[ -z "$DOCKER_COMPOSE_CMD" ]]; then
+if [[ ${#DOCKER_COMPOSE_CMD[@]} -eq 0 ]]; then
   warn "Docker Compose:   ${RED}nicht installiert${RST}"
   NEED_COMPOSE=true
 else
@@ -333,8 +342,8 @@ if $NEED_DOCKER || $NEED_COMPOSE; then
   ok "Docker installiert."
 
   resolve_docker_cmd ""
-  if [[ -z "$DOCKER_COMPOSE_CMD" ]]; then resolve_docker_cmd "sudo"; fi
-  if [[ -z "$DOCKER_COMPOSE_CMD" ]]; then die "Docker Compose konnte nicht gefunden werden."; fi
+  if [[ ${#DOCKER_COMPOSE_CMD[@]} -eq 0 ]]; then resolve_docker_cmd "sudo"; fi
+  if [[ ${#DOCKER_COMPOSE_CMD[@]} -eq 0 ]]; then die "Docker Compose konnte nicht gefunden werden."; fi
 
   # Benutzer zur docker-Gruppe hinzufügen
   if ! groups "$DOCKER_USER" 2>/dev/null | grep -q '\bdocker\b'; then
@@ -354,7 +363,7 @@ else
   DOCKER_USER="${SUDO_USER:-$CURRENT_USER}"
 fi
 
-log "Docker-Benutzer: $DOCKER_USER | DOCKER_COMPOSE_CMD: $DOCKER_COMPOSE_CMD"
+log "Docker-Benutzer: $DOCKER_USER | DOCKER_COMPOSE_CMD: ${DOCKER_COMPOSE_CMD[*]}"
 
 # ════════════════════════════════════════════════════════════════
 step "Installationsverzeichnis festlegen"
