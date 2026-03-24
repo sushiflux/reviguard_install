@@ -751,7 +751,7 @@
 
     <div class="sidebar-meta">
         <a href="{{ route('changelog.index') }}" class="meta-version" style="text-decoration:none; cursor:pointer;" title="Changelog anzeigen">
-            ReviGuard v{{ env('APP_VERSION', '0.1.0') }} ↗
+            ReviGuard v{{ config('app.version', '0.5.1') }} ↗
         </a>
         <div class="meta-copy">
             Made with <span class="meta-heart">♥</span> by Michel Matthes<br>
