@@ -64,3 +64,15 @@ ehthumbs.db
 *.log
 *.cache
 *.tmp
+
+# ── Interne Entwickler-Dateien (nicht für Kunden) ─────────────────
+DEVELOPER_DIARY.txt
+DEVELOPER_DIARY.html
+CLAUDE.md
+git-push.txt
+setup.sh
+setup_laravel.sh
+*.png
+*.jpg
+*.jpeg
+.phpunit.result.cache
