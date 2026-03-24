@@ -762,10 +762,15 @@ if ! $IS_UPGRADE; then
 fi
 
 spinner_start "Dateiberechtigungen setzen..."
-DK exec -u root reviguard_php \
-  chown -R appuser:appgroup storage bootstrap/cache >> "$LOG_FILE" 2>&1
-DK exec -u root reviguard_php \
-  chmod -R 775 storage bootstrap/cache >> "$LOG_FILE" 2>&1
+DK exec -u root reviguard_php bash -c "
+  mkdir -p /var/www/html/storage/logs \
+           /var/www/html/storage/framework/cache \
+           /var/www/html/storage/framework/sessions \
+           /var/www/html/storage/framework/views \
+           /var/www/html/bootstrap/cache &&
+  chown -R appuser:appgroup /var/www/html/storage /var/www/html/bootstrap/cache &&
+  chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+" >> "$LOG_FILE" 2>&1
 spinner_stop; ok "Dateiberechtigungen gesetzt."
 
 spinner_start "Datenbank-Migrationen ausführen..."
