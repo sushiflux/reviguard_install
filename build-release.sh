@@ -88,26 +88,40 @@ mkdir -p "$RELEASE_DIR"
 info "Erstelle Release-Archiv..."
 
 # Dateien die NICHT ins Archiv sollen
+# Hinweis: --exclude wird vor --transform angewendet, daher ./ als Prefix
 EXCLUDES=(
-  ".git"
-  ".env"
-  "vendor"
-  "node_modules"
-  "dist"
-  "storage/logs"
-  "storage/framework/cache"
-  "storage/framework/sessions"
-  "storage/framework/views"
-  "bootstrap/cache"
-  "install.log"
-  "*.log"
-  ".DS_Store"
-  "Thumbs.db"
+  "./.git"
+  "./.env"
+  "./vendor"
+  "./node_modules"
+  "./dist"
+  "./storage/logs"
+  "./storage/framework/cache"
+  "./storage/framework/sessions"
+  "./storage/framework/views"
+  "./bootstrap/cache"
+  "./install.log"
+  "./*.log"
+  "./.DS_Store"
+  "./Thumbs.db"
+  # Entwickler-Dateien (nicht für Kunden)
+  "./CLAUDE.md"
+  "./DEVELOPER_DIARY.txt"
+  "./DEVELOPER_DIARY.html"
+  "./build-release.sh"
+  "./git-push.txt"
+  "./setup.sh"
+  "./setup_laravel.sh"
+  "./.claude"
+  "./tests"
+  "./*.png"
+  "./*.jpg"
+  "./*.jpeg"
 )
 
 EXCLUDE_ARGS=()
 for excl in "${EXCLUDES[@]}"; do
-  EXCLUDE_ARGS+=("--exclude=reviguard/${excl}")
+  EXCLUDE_ARGS+=("--exclude=${excl}")
 done
 
 tar -czf "$RELEASE_DIR/$ARCHIVE_NAME" \
