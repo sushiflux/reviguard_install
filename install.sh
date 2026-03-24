@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.2"
+REVIGUARD_VERSION="0.5.3"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install.log"
 STEP_COUNT=1
@@ -627,6 +627,64 @@ ok "Anwendungs-Konfiguration abgeschlossen."
 log "App-Port: $APP_PORT | URL: $APP_URL | phpMyAdmin: $PMA_ENABLED"
 
 # ════════════════════════════════════════════════════════════════
+step "SSL / HTTPS konfigurieren (Let's Encrypt)"
+# ════════════════════════════════════════════════════════════════
+echo
+
+SSL_ENABLED=false; SSL_DOMAIN=""; SSL_EMAIL=""
+
+if ! $IS_UPGRADE; then
+  echo -e "  HTTPS verschlüsselt die Verbindung und ist heute Standard."
+  echo -e "  Voraussetzung: Eine Domain muss bereits auf diesen Server"
+  echo -e "  zeigen (DNS A-Eintrag konfiguriert)."
+  echo
+  if ask_yn "SSL / HTTPS mit Let's Encrypt einrichten?" "j"; then
+    echo
+    SSL_DOMAIN=$(ask "Domain (z.B. reviguard.ihrefirma.de)")
+    [[ "$SSL_DOMAIN" =~ ^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$ ]] \
+      || die "Ungültiges Domain-Format. Beispiel: reviguard.ihrefirma.de"
+
+    # Öffentliche IP dieses Servers ermitteln
+    SERVER_IP=$(curl -fsSL --connect-timeout 5 https://api.ipify.org 2>/dev/null \
+      || hostname -I | awk '{print $1}' | tr -d ' ')
+
+    # DNS prüfen
+    DOMAIN_IP=$(getent hosts "$SSL_DOMAIN" 2>/dev/null | awk '{print $1}' || true)
+
+    if [[ -z "$DOMAIN_IP" ]]; then
+      warn "DNS-Auflösung für '${BLD}$SSL_DOMAIN${RST}' fehlgeschlagen."
+      info "Dieser Server hat die IP: ${BLD}$SERVER_IP${RST}"
+      echo
+      ask_yn "Trotzdem fortfahren? (DNS evtl. noch nicht propagiert)" "n" \
+        || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen und erneut starten."
+    elif [[ "$DOMAIN_IP" != "$SERVER_IP" ]]; then
+      warn "DNS zeigt auf ${BLD}$DOMAIN_IP${RST} — dieser Server ist ${BLD}$SERVER_IP${RST}"
+      ask_yn "Trotzdem fortfahren?" "n" \
+        || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen."
+    else
+      ok "DNS-Prüfung: ${BLD}$SSL_DOMAIN${RST} → ${BLD}$SERVER_IP${RST}"
+    fi
+
+    echo
+    SSL_EMAIL=$(ask "E-Mail für Let's Encrypt (Ablaufbenachrichtigung)")
+    [[ -n "$SSL_EMAIL" ]] || die "E-Mail Adresse erforderlich."
+
+    # Port 80 ist Pflicht für HTTP-Challenge
+    if [[ "$APP_PORT" != "80" ]]; then
+      warn "Für Let's Encrypt muss Port 80 verwendet werden."
+      APP_PORT=80
+      info "APP_PORT wurde auf 80 gesetzt."
+    fi
+
+    APP_URL="https://${SSL_DOMAIN}"
+    SSL_ENABLED=true
+    ok "SSL für ${BLD}$SSL_DOMAIN${RST} wird nach dem Start eingerichtet."
+  else
+    info "SSL übersprungen. HTTP bleibt aktiv."
+  fi
+fi
+
+# ════════════════════════════════════════════════════════════════
 step "System-Benutzer und Berechtigungen einrichten"
 # ════════════════════════════════════════════════════════════════
 echo
@@ -818,6 +876,120 @@ DK exec reviguard_php php artisan config:cache >> "$LOG_FILE" 2>&1
 DK exec reviguard_php php artisan route:cache  >> "$LOG_FILE" 2>&1
 DK exec reviguard_php php artisan view:cache   >> "$LOG_FILE" 2>&1
 spinner_stop; ok "Caches optimiert."
+
+# ════════════════════════════════════════════════════════════════
+if $SSL_ENABLED; then
+step "SSL-Zertifikat einrichten (Let's Encrypt)"
+# ════════════════════════════════════════════════════════════════
+echo
+
+# certbot installieren
+spinner_start "Certbot installieren..."
+case "$OS_FAMILY" in
+  debian) sudo apt-get install -y -qq certbot >> "$LOG_FILE" 2>&1 ;;
+  rhel)   sudo dnf install -y -q  certbot >> "$LOG_FILE" 2>&1 ;;
+esac
+spinner_stop; ok "Certbot installiert."
+
+# Webroot-Verzeichnis sicherstellen
+sudo mkdir -p "$INSTALL_DIR/public/.well-known/acme-challenge"
+sudo chown -R "$SVC_USER:$SVC_USER" "$INSTALL_DIR/public/.well-known" 2>/dev/null || true
+
+# Zertifikat holen (Webroot — nginx bleibt laufen, Port 80 wird genutzt)
+spinner_start "Zertifikat wird bei Let's Encrypt angefragt..."
+sudo certbot certonly \
+  --webroot \
+  --webroot-path "$INSTALL_DIR/public" \
+  --email "$SSL_EMAIL" \
+  --agree-tos \
+  --no-eff-email \
+  --non-interactive \
+  -d "$SSL_DOMAIN" >> "$LOG_FILE" 2>&1 || {
+    spinner_stop
+    die "Zertifikat konnte nicht ausgestellt werden.\nMögliche Ursachen: Port 80 nicht erreichbar von außen, DNS noch nicht propagiert.\nDetails: $LOG_FILE"
+  }
+spinner_stop; ok "SSL-Zertifikat ausgestellt für ${BLD}$SSL_DOMAIN${RST}"
+
+# Nginx-Config auf HTTPS umstellen
+spinner_start "Nginx SSL-Konfiguration wird geschrieben..."
+sudo tee "$INSTALL_DIR/docker/nginx/default.conf" > /dev/null <<NGINXSSL
+# HTTP → HTTPS Redirect (Let's Encrypt ACME Challenge bleibt erreichbar)
+server {
+    listen 80;
+    server_name ${SSL_DOMAIN};
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/html/public;
+    }
+
+    location / {
+        return 301 https://\$host\$request_uri;
+    }
+}
+
+# HTTPS
+server {
+    listen 443 ssl;
+    server_name ${SSL_DOMAIN};
+
+    ssl_certificate     /etc/letsencrypt/live/${SSL_DOMAIN}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${SSL_DOMAIN}/privkey.pem;
+    ssl_protocols       TLSv1.2 TLSv1.3;
+    ssl_ciphers         HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    root /var/www/html/public;
+    index index.php index.html;
+
+    location / {
+        try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php\$ {
+        fastcgi_pass   php:9000;
+        fastcgi_index  index.php;
+        fastcgi_param  SCRIPT_FILENAME \$realpath_root\$fastcgi_script_name;
+        include        fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+
+    error_log  /var/log/nginx/error.log;
+    access_log /var/log/nginx/access.log;
+}
+NGINXSSL
+spinner_stop; ok "Nginx SSL-Konfiguration geschrieben."
+
+# docker-compose.override.yml: Port 443 + Zertifikats-Volume hinzufügen
+spinner_start "Docker Compose SSL-Override wird erstellt..."
+sudo tee "$INSTALL_DIR/docker-compose.override.yml" > /dev/null <<SSLOVERRIDE
+services:
+  web:
+    ports:
+      - "${APP_PORT}:80"
+      - "443:443"
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+SSLOVERRIDE
+spinner_stop; ok "Docker Compose SSL-Override erstellt."
+
+# Nginx-Container neu starten damit SSL-Config greift
+spinner_start "Nginx wird mit SSL-Konfiguration neugestartet..."
+DC restart web >> "$LOG_FILE" 2>&1
+spinner_stop; ok "Nginx läuft jetzt mit SSL."
+
+# Auto-Renewal Cronjob einrichten
+sudo tee /etc/cron.d/reviguard-ssl > /dev/null <<CRONCONF
+# Let's Encrypt Auto-Renewal für ReviGuard (täglich 03:17 Uhr)
+17 3 * * * root certbot renew --quiet --deploy-hook "docker compose --project-directory ${INSTALL_DIR} restart web"
+CRONCONF
+sudo chmod 644 /etc/cron.d/reviguard-ssl
+ok "Auto-Renewal eingerichtet (täglich 03:17 Uhr)."
+log "SSL eingerichtet: $SSL_DOMAIN | Auto-Renewal: /etc/cron.d/reviguard-ssl"
+
+fi # SSL_ENABLED
 
 # ════════════════════════════════════════════════════════════════
 step "Systemd-Service einrichten (Autostart)"
@@ -1072,6 +1244,9 @@ echo "  ╚═══════════════════════
 echo -e "${RST}"
 echo -e "  ${BLD}Anwendung:${RST}"
 echo -e "  ${CYN}${BLD}${APP_URL}${RST}"
+if $SSL_ENABLED; then
+echo -e "  ${DIM}HTTP wird automatisch auf HTTPS umgeleitet.${RST}"
+fi
 echo
 
 if ! $IS_UPGRADE; then
