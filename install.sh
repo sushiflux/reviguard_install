@@ -144,8 +144,9 @@ detect_os() {
       rhel|centos|rocky|almalinux|fedora)  OS_FAMILY="rhel"   ;;
     esac
   fi
-  [[ "$OS_FAMILY" == "unknown" ]] && \
+  if [[ "$OS_FAMILY" == "unknown" ]]; then
     die "Nicht unterstütztes Betriebssystem. Unterstützt: Ubuntu, Debian, Rocky Linux, AlmaLinux, RHEL, Fedora."
+  fi
 }
 
 # ── Docker / Compose ──────────────────────────────────────────────
@@ -332,8 +333,8 @@ if $NEED_DOCKER || $NEED_COMPOSE; then
   ok "Docker installiert."
 
   resolve_docker_cmd ""
-  [[ -z "$DOCKER_COMPOSE_CMD" ]] && resolve_docker_cmd "sudo"
-  [[ -z "$DOCKER_COMPOSE_CMD" ]] && die "Docker Compose konnte nicht gefunden werden."
+  if [[ -z "$DOCKER_COMPOSE_CMD" ]]; then resolve_docker_cmd "sudo"; fi
+  if [[ -z "$DOCKER_COMPOSE_CMD" ]]; then die "Docker Compose konnte nicht gefunden werden."; fi
 
   # Benutzer zur docker-Gruppe hinzufügen
   if ! groups "$DOCKER_USER" 2>/dev/null | grep -q '\bdocker\b'; then
@@ -457,7 +458,7 @@ else
     DB_DATABASE=$(ask     "Datenbankname"         "reviguard")
     DB_USERNAME=$(ask     "Datenbank-Benutzer"    "reviguard_user")
     DB_PASSWORD=$(ask_secret "Passwort für '$DB_USERNAME' [Enter = automatisch]")
-    [[ -z "$DB_PASSWORD" ]] && DB_PASSWORD=$(gen_password) && info "Passwort automatisch generiert."
+    if [[ -z "$DB_PASSWORD" ]]; then DB_PASSWORD=$(gen_password); info "Passwort automatisch generiert."; fi
 
     # Port-Erreichbarkeit testen (schnell, ohne Docker)
     sep
@@ -505,7 +506,7 @@ else
     DB_DATABASE=$(ask "Datenbankname"       "reviguard")
     DB_USERNAME=$(ask "Datenbank-Benutzer"  "appuser")
     DB_PASSWORD=$(ask_secret "Datenbank-Passwort [Enter = automatisch]")
-    [[ -z "$DB_PASSWORD" ]] && DB_PASSWORD=$(gen_password) && info "Passwort automatisch generiert."
+    if [[ -z "$DB_PASSWORD" ]]; then DB_PASSWORD=$(gen_password); info "Passwort automatisch generiert."; fi
     DB_ROOT_PASS=$(gen_password)
     info "MySQL root-Passwort automatisch generiert."
 
@@ -574,8 +575,9 @@ else
   if ask_yn "phpMyAdmin (Datenbank-Verwaltung) installieren?" "n"; then
     PMA_ENABLED=true
     PMA_PORT=$(ask "Port für phpMyAdmin" "8085")
-    [[ $(check_port "$PMA_PORT") == "belegt" ]] && \
+    if [[ $(check_port "$PMA_PORT") == "belegt" ]]; then
       warn "Port $PMA_PORT ist belegt. Bitte nach der Installation anpassen."
+    fi
   fi
 fi
 
@@ -710,7 +712,7 @@ spinner_start "Warte auf PHP-Container..."
 for i in $(seq 1 40); do
   if DK exec reviguard_php php -r "echo 'ok';" &>/dev/null 2>&1; then break; fi
   sleep 3
-  [[ $i -eq 40 ]] && { spinner_stop; die "PHP-Container antwortet nicht. Log: docker logs reviguard_php"; }
+  if [[ $i -eq 40 ]]; then spinner_stop; die "PHP-Container antwortet nicht. Log: docker logs reviguard_php"; fi
 done
 spinner_stop
 ok "PHP-Container bereit."
@@ -722,7 +724,7 @@ if [[ "$DB_MODE" == "local" ]]; then
     if DK exec reviguard_db mysqladmin ping \
         -u root -p"$MYSQL_ROOT_PASSWORD" --silent &>/dev/null 2>&1; then break; fi
     sleep 3
-    [[ $i -eq 40 ]] && { spinner_stop; die "MySQL antwortet nicht. Log: docker logs reviguard_db"; }
+    if [[ $i -eq 40 ]]; then spinner_stop; die "MySQL antwortet nicht. Log: docker logs reviguard_db"; fi
   done
   spinner_stop
   ok "MySQL bereit."
