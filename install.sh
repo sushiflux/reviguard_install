@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.3"
+REVIGUARD_VERSION="0.5.4"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install.log"
 STEP_COUNT=1
@@ -593,23 +593,65 @@ else
   echo
 
   PORT_80_STATUS=$(check_port 80)
+  REVERSE_PROXY_MODE=false
+  PROXY_SERVER=""  # nginx oder apache2
+
   if [[ "$PORT_80_STATUS" == "belegt" ]]; then
-    warn "Port 80 ist bereits belegt."
-    APP_PORT=$(ask "HTTP-Port für ReviGuard" "8080")
+    warn "Port 80 ist bereits belegt — ein anderer Webserver läuft auf diesem Server."
+    echo
+    echo -e "  ${BLD}Optionen:${RST}"
+    echo -e "  ${CYN}1)${RST} ReviGuard auf einer Subdomain einrichten ${DIM}(empfohlen)${RST}"
+    echo -e "     ${DIM}Bestehender Webserver leitet reviguard.ihredomain.de weiter.${RST}"
+    echo -e "  ${CYN}2)${RST} ReviGuard auf einem anderen Port (z.B. 8084)"
+    echo -e "     ${DIM}Aufruf über http://IP:8084 — kein eigener Domainname nötig.${RST}"
+    echo
+    PORT_CHOICE=$(ask "Auswahl" "1")
+
+    if [[ "$PORT_CHOICE" == "1" ]]; then
+      REVERSE_PROXY_MODE=true
+
+      # Freien internen Port suchen
+      INTERNAL_PORT=8084
+      while [[ $(check_port "$INTERNAL_PORT") == "belegt" ]]; do
+        ((INTERNAL_PORT++))
+      done
+      APP_PORT="$INTERNAL_PORT"
+
+      # Webserver auf dem Host erkennen
+      if command -v nginx &>/dev/null && sudo nginx -t &>/dev/null 2>&1; then
+        PROXY_SERVER="nginx"
+      elif command -v apache2 &>/dev/null || command -v httpd &>/dev/null; then
+        PROXY_SERVER="apache2"
+      else
+        warn "Kein nginx oder Apache auf dem Host gefunden."
+        info "Die Proxy-Konfiguration muss manuell hinzugefügt werden."
+      fi
+
+      [[ -n "$PROXY_SERVER" ]] && ok "Webserver erkannt: ${BLD}$PROXY_SERVER${RST}"
+
+      echo
+      PROXY_DOMAIN=$(ask "Subdomain für ReviGuard (z.B. reviguard.ihredomain.de)")
+      [[ -n "$PROXY_DOMAIN" ]] || die "Subdomain ist erforderlich."
+      APP_URL="https://${PROXY_DOMAIN}"
+    else
+      APP_PORT=$(ask "HTTP-Port für ReviGuard" "8084")
+      if [[ $(check_port "$APP_PORT") == "belegt" ]]; then
+        warn "Port $APP_PORT ist belegt. Installation fortsetzen?"
+        ask_yn "Trotzdem fortfahren?" "n" || die "Bitte einen freien Port wählen."
+      fi
+      APP_URL=$(ask "Öffentliche URL" "http://${AUTO_IP}:${APP_PORT}")
+    fi
   else
     APP_PORT=$(ask "HTTP-Port für ReviGuard" "80")
-  fi
-
-  # Port nochmals prüfen
-  if [[ $(check_port "$APP_PORT") == "belegt" ]]; then
-    warn "Port $APP_PORT ist belegt. Installation fortsetzen?"
-    ask_yn "Trotzdem fortfahren?" "n" || die "Bitte einen freien Port wählen."
-  fi
-
-  if [[ "$APP_PORT" == "80" ]]; then
-    APP_URL=$(ask "Öffentliche URL" "http://${AUTO_IP}")
-  else
-    APP_URL=$(ask "Öffentliche URL" "http://${AUTO_IP}:${APP_PORT}")
+    if [[ $(check_port "$APP_PORT") == "belegt" ]]; then
+      warn "Port $APP_PORT ist belegt. Installation fortsetzen?"
+      ask_yn "Trotzdem fortfahren?" "n" || die "Bitte einen freien Port wählen."
+    fi
+    if [[ "$APP_PORT" == "80" ]]; then
+      APP_URL=$(ask "Öffentliche URL" "http://${AUTO_IP}")
+    else
+      APP_URL=$(ask "Öffentliche URL" "http://${AUTO_IP}:${APP_PORT}")
+    fi
   fi
 
   echo
@@ -634,53 +676,65 @@ echo
 SSL_ENABLED=false; SSL_DOMAIN=""; SSL_EMAIL=""
 
 if ! $IS_UPGRADE; then
-  echo -e "  HTTPS verschlüsselt die Verbindung und ist heute Standard."
-  echo -e "  Voraussetzung: Eine Domain muss bereits auf diesen Server"
-  echo -e "  zeigen (DNS A-Eintrag konfiguriert)."
-  echo
-  if ask_yn "SSL / HTTPS mit Let's Encrypt einrichten?" "j"; then
-    echo
-    SSL_DOMAIN=$(ask "Domain (z.B. reviguard.ihrefirma.de)")
-    [[ "$SSL_DOMAIN" =~ ^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$ ]] \
-      || die "Ungültiges Domain-Format. Beispiel: reviguard.ihrefirma.de"
-
-    # Öffentliche IP dieses Servers ermitteln
-    SERVER_IP=$(curl -fsSL --connect-timeout 5 https://api.ipify.org 2>/dev/null \
-      || hostname -I | awk '{print $1}' | tr -d ' ')
-
-    # DNS prüfen
-    DOMAIN_IP=$(getent hosts "$SSL_DOMAIN" 2>/dev/null | awk '{print $1}' || true)
-
-    if [[ -z "$DOMAIN_IP" ]]; then
-      warn "DNS-Auflösung für '${BLD}$SSL_DOMAIN${RST}' fehlgeschlagen."
-      info "Dieser Server hat die IP: ${BLD}$SERVER_IP${RST}"
-      echo
-      ask_yn "Trotzdem fortfahren? (DNS evtl. noch nicht propagiert)" "n" \
-        || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen und erneut starten."
-    elif [[ "$DOMAIN_IP" != "$SERVER_IP" ]]; then
-      warn "DNS zeigt auf ${BLD}$DOMAIN_IP${RST} — dieser Server ist ${BLD}$SERVER_IP${RST}"
-      ask_yn "Trotzdem fortfahren?" "n" \
-        || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen."
-    else
-      ok "DNS-Prüfung: ${BLD}$SSL_DOMAIN${RST} → ${BLD}$SERVER_IP${RST}"
-    fi
-
+  if $REVERSE_PROXY_MODE; then
+    # Im Reverse-Proxy-Modus: Domain ist bereits bekannt, SSL über Host-Webserver
+    echo -e "  Domain: ${BLD}$PROXY_DOMAIN${RST}"
+    echo -e "  SSL wird über den bestehenden ${BLD}$PROXY_SERVER${RST} eingerichtet."
     echo
     SSL_EMAIL=$(ask "E-Mail für Let's Encrypt (Ablaufbenachrichtigung)")
     [[ -n "$SSL_EMAIL" ]] || die "E-Mail Adresse erforderlich."
-
-    # Port 80 ist Pflicht für HTTP-Challenge
-    if [[ "$APP_PORT" != "80" ]]; then
-      warn "Für Let's Encrypt muss Port 80 verwendet werden."
-      APP_PORT=80
-      info "APP_PORT wurde auf 80 gesetzt."
-    fi
-
-    APP_URL="https://${SSL_DOMAIN}"
+    SSL_DOMAIN="$PROXY_DOMAIN"
     SSL_ENABLED=true
     ok "SSL für ${BLD}$SSL_DOMAIN${RST} wird nach dem Start eingerichtet."
   else
-    info "SSL übersprungen. HTTP bleibt aktiv."
+    echo -e "  HTTPS verschlüsselt die Verbindung und ist heute Standard."
+    echo -e "  Voraussetzung: Eine Domain muss bereits auf diesen Server"
+    echo -e "  zeigen (DNS A-Eintrag konfiguriert)."
+    echo
+    if ask_yn "SSL / HTTPS mit Let's Encrypt einrichten?" "j"; then
+      echo
+      SSL_DOMAIN=$(ask "Domain (z.B. reviguard.ihrefirma.de)")
+      [[ "$SSL_DOMAIN" =~ ^[a-zA-Z0-9]([a-zA-Z0-9.-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z]{2,})+$ ]] \
+        || die "Ungültiges Domain-Format. Beispiel: reviguard.ihrefirma.de"
+
+      # Öffentliche IP dieses Servers ermitteln
+      SERVER_IP=$(curl -fsSL --connect-timeout 5 https://api.ipify.org 2>/dev/null \
+        || hostname -I | awk '{print $1}' | tr -d ' ')
+
+      # DNS prüfen
+      DOMAIN_IP=$(getent hosts "$SSL_DOMAIN" 2>/dev/null | awk '{print $1}' || true)
+
+      if [[ -z "$DOMAIN_IP" ]]; then
+        warn "DNS-Auflösung für '${BLD}$SSL_DOMAIN${RST}' fehlgeschlagen."
+        info "Dieser Server hat die IP: ${BLD}$SERVER_IP${RST}"
+        echo
+        ask_yn "Trotzdem fortfahren? (DNS evtl. noch nicht propagiert)" "n" \
+          || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen und erneut starten."
+      elif [[ "$DOMAIN_IP" != "$SERVER_IP" ]]; then
+        warn "DNS zeigt auf ${BLD}$DOMAIN_IP${RST} — dieser Server ist ${BLD}$SERVER_IP${RST}"
+        ask_yn "Trotzdem fortfahren?" "n" \
+          || die "Bitte A-Eintrag für '$SSL_DOMAIN' auf '$SERVER_IP' setzen."
+      else
+        ok "DNS-Prüfung: ${BLD}$SSL_DOMAIN${RST} → ${BLD}$SERVER_IP${RST}"
+      fi
+
+      echo
+      SSL_EMAIL=$(ask "E-Mail für Let's Encrypt (Ablaufbenachrichtigung)")
+      [[ -n "$SSL_EMAIL" ]] || die "E-Mail Adresse erforderlich."
+
+      # Port 80 ist Pflicht für HTTP-Challenge
+      if [[ "$APP_PORT" != "80" ]]; then
+        warn "Für Let's Encrypt muss Port 80 verwendet werden."
+        APP_PORT=80
+        info "APP_PORT wurde auf 80 gesetzt."
+      fi
+
+      APP_URL="https://${SSL_DOMAIN}"
+      SSL_ENABLED=true
+      ok "SSL für ${BLD}$SSL_DOMAIN${RST} wird nach dem Start eingerichtet."
+    else
+      info "SSL übersprungen. HTTP bleibt aktiv."
+    fi
   fi
 fi
 
@@ -895,6 +949,93 @@ spinner_stop; ok "Certbot installiert."
 sudo mkdir -p "$INSTALL_DIR/public/.well-known/acme-challenge"
 sudo chown -R "$SVC_USER:$SVC_USER" "$INSTALL_DIR/public/.well-known" 2>/dev/null || true
 
+# ── Reverse-Proxy-Modus: Host-Webserver konfigurieren ────────────
+if $REVERSE_PROXY_MODE; then
+
+  if [[ "$PROXY_SERVER" == "nginx" ]]; then
+    # nginx Proxy-Config schreiben
+    PROXY_CONF="/etc/nginx/sites-available/reviguard"
+    spinner_start "nginx Reverse-Proxy-Konfiguration wird erstellt..."
+    sudo tee "$PROXY_CONF" > /dev/null <<NGINXPROXY
+server {
+    listen 80;
+    server_name ${SSL_DOMAIN};
+
+    location / {
+        proxy_pass         http://127.0.0.1:${APP_PORT};
+        proxy_http_version 1.1;
+        proxy_set_header   Host              \$host;
+        proxy_set_header   X-Real-IP         \$remote_addr;
+        proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
+        proxy_set_header   X-Forwarded-Proto \$scheme;
+        proxy_read_timeout 60s;
+    }
+}
+NGINXPROXY
+    sudo ln -sf "$PROXY_CONF" /etc/nginx/sites-enabled/reviguard 2>/dev/null || true
+    sudo nginx -t >> "$LOG_FILE" 2>&1 && sudo systemctl reload nginx >> "$LOG_FILE" 2>&1
+    spinner_stop; ok "nginx Proxy-Config aktiviert für ${BLD}$SSL_DOMAIN${RST}"
+
+  elif [[ "$PROXY_SERVER" == "apache2" ]]; then
+    # Apache Module aktivieren
+    spinner_start "Apache Module werden aktiviert..."
+    sudo a2enmod proxy proxy_http headers rewrite >> "$LOG_FILE" 2>&1
+    spinner_stop; ok "Apache Module aktiviert."
+
+    PROXY_CONF="/etc/apache2/sites-available/reviguard.conf"
+    spinner_start "Apache Reverse-Proxy-Konfiguration wird erstellt..."
+    sudo tee "$PROXY_CONF" > /dev/null <<APACHEPROXY
+<VirtualHost *:80>
+    ServerName ${SSL_DOMAIN}
+
+    ProxyPreserveHost On
+    ProxyPass        / http://127.0.0.1:${APP_PORT}/
+    ProxyPassReverse / http://127.0.0.1:${APP_PORT}/
+
+    RequestHeader set X-Forwarded-Proto "http"
+    RequestHeader set X-Forwarded-For   "%{REMOTE_ADDR}e"
+</VirtualHost>
+APACHEPROXY
+    sudo a2ensite reviguard >> "$LOG_FILE" 2>&1
+    sudo systemctl reload apache2 >> "$LOG_FILE" 2>&1
+    spinner_stop; ok "Apache Proxy-Config aktiviert für ${BLD}$SSL_DOMAIN${RST}"
+  fi
+
+  # Certbot mit Host-Webserver-Plugin
+  spinner_start "SSL-Zertifikat wird angefragt (${PROXY_SERVER}-Plugin)..."
+  if [[ "$PROXY_SERVER" == "nginx" ]]; then
+    sudo apt-get install -y -qq python3-certbot-nginx >> "$LOG_FILE" 2>&1 || \
+      sudo dnf install -y -q  python3-certbot-nginx >> "$LOG_FILE" 2>&1 || true
+    sudo certbot --nginx \
+      --email "$SSL_EMAIL" --agree-tos --no-eff-email --non-interactive \
+      -d "$SSL_DOMAIN" >> "$LOG_FILE" 2>&1 || {
+        spinner_stop
+        die "SSL-Zertifikat konnte nicht ausgestellt werden. Details: $LOG_FILE"
+      }
+  elif [[ "$PROXY_SERVER" == "apache2" ]]; then
+    sudo apt-get install -y -qq python3-certbot-apache >> "$LOG_FILE" 2>&1 || \
+      sudo dnf install -y -q  python3-certbot-apache >> "$LOG_FILE" 2>&1 || true
+    sudo certbot --apache \
+      --email "$SSL_EMAIL" --agree-tos --no-eff-email --non-interactive \
+      -d "$SSL_DOMAIN" >> "$LOG_FILE" 2>&1 || {
+        spinner_stop
+        die "SSL-Zertifikat konnte nicht ausgestellt werden. Details: $LOG_FILE"
+      }
+  fi
+  spinner_stop; ok "SSL-Zertifikat ausgestellt — ${BLD}https://$SSL_DOMAIN${RST} ist aktiv."
+
+  # Auto-Renewal
+  sudo tee /etc/cron.d/reviguard-ssl > /dev/null <<CRONCONF
+# Let's Encrypt Auto-Renewal für ReviGuard (täglich 03:17 Uhr)
+17 3 * * * root certbot renew --quiet
+CRONCONF
+  sudo chmod 644 /etc/cron.d/reviguard-ssl
+  ok "Auto-Renewal eingerichtet."
+  log "Reverse-Proxy SSL: $SSL_DOMAIN via $PROXY_SERVER"
+
+else
+  # ── Direkt-Modus: Docker-nginx mit Webroot-Challenge ─────────────
+
 # Zertifikat holen (Webroot — nginx bleibt laufen, Port 80 wird genutzt)
 spinner_start "Zertifikat wird bei Let's Encrypt angefragt..."
 sudo certbot certonly \
@@ -989,6 +1130,7 @@ sudo chmod 644 /etc/cron.d/reviguard-ssl
 ok "Auto-Renewal eingerichtet (täglich 03:17 Uhr)."
 log "SSL eingerichtet: $SSL_DOMAIN | Auto-Renewal: /etc/cron.d/reviguard-ssl"
 
+fi # Ende Direkt-Modus (else von REVERSE_PROXY_MODE)
 fi # SSL_ENABLED
 
 # ════════════════════════════════════════════════════════════════
