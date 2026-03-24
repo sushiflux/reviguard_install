@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.5"
+REVIGUARD_VERSION="0.5.6"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install.log"
 STEP_COUNT=1
@@ -207,6 +207,13 @@ https://download.docker.com/linux/${OS_ID} $(lsb_release -cs) stable" \
 # ================================================================
 #  MAIN
 # ================================================================
+
+# Wenn stdin keine TTY ist (z.B. curl | bash), auf /dev/tty umleiten
+# damit interaktive Eingaben funktionieren
+if [[ ! -t 0 ]]; then
+  exec < /dev/tty
+fi
+
 banner
 echo -e "  ${BLD}Willkommen beim ReviGuard Installations-Assistenten.${RST}"
 echo -e "  Dieser Assistent konfiguriert und installiert ReviGuard"
