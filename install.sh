@@ -162,7 +162,7 @@ resolve_docker_cmd() {
   fi
 }
 
-DC() { cd "$INSTALL_DIR" && $DOCKER_COMPOSE_CMD "$@"; }
+DC() { $DOCKER_COMPOSE_CMD --project-directory "$INSTALL_DIR" "$@"; }
 DK() { ${DOCKER_SUDO:-} docker "$@"; }
 
 # ── Docker installieren ────────────────────────────────────────────
@@ -613,8 +613,12 @@ SVC_GID=$(id -g "$SVC_USER")
 
 # Verzeichnis-Eigentümer setzen
 sudo chown -R "$SVC_USER:$SVC_USER" "$INSTALL_DIR"
-sudo chmod -R 750 "$INSTALL_DIR"
+sudo chmod 755 "$INSTALL_DIR"                                    # traversierbar für alle
+sudo find "$INSTALL_DIR" -type d -exec sudo chmod 755 {} \;     # alle Unterordner
+sudo find "$INSTALL_DIR" -type f -exec sudo chmod 644 {} \;     # alle Dateien
+sudo chmod 755 "$INSTALL_DIR/artisan"                           # ausführbar
 sudo chmod -R 775 "$INSTALL_DIR/storage" "$INSTALL_DIR/bootstrap/cache"
+sudo chmod 640 "$INSTALL_DIR/.env" 2>/dev/null || true          # .env absichern
 ok "Verzeichnis-Berechtigungen gesetzt."
 
 log "Service-User: $SVC_USER (UID=$SVC_UID, GID=$SVC_GID)"
