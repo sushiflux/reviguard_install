@@ -14,9 +14,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.8"
+REVIGUARD_VERSION="0.5.9"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOG_FILE="/tmp/reviguard-install.log"
+LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
 
 # ── Mindestanforderungen ──────────────────────────────────────────
