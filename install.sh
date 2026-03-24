@@ -235,11 +235,11 @@ if [[ "$EUID" -eq 0 ]]; then
   echo -e "  ${BLD}Neuen Benutzer anlegen (Befehle als root ausführen):${RST}"
   echo
   echo -e "  ${CYN}1)${RST} Benutzer anlegen und sudo-Rechte vergeben:"
-  echo -e "     ${DIM}adduser michel${RST}"
-  echo -e "     ${DIM}usermod -aG sudo michel${RST}"
+  echo -e "     ${DIM}adduser BENUTZERNAME${RST}"
+  echo -e "     ${DIM}usermod -aG sudo BENUTZERNAME${RST}"
   echo
   echo -e "  ${CYN}2)${RST} Als neuen Benutzer neu anmelden:"
-  echo -e "     ${DIM}su - michel${RST}"
+  echo -e "     ${DIM}su - BENUTZERNAME${RST}"
   echo
   echo -e "  ${CYN}3)${RST} Installation erneut starten:"
   echo -e "     ${DIM}curl -fsSL https://raw.githubusercontent.com/sushiflux/reviguard_install/main/get.sh | bash${RST}"
