@@ -133,4 +133,4 @@ echo
 [[ -x "$EXTRACT_DIR/install.sh" ]] \
   || die "install.sh nicht im Archiv gefunden."
 
-exec "$EXTRACT_DIR/install.sh"
+exec "$EXTRACT_DIR/install.sh" < /dev/tty
