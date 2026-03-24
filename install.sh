@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.6"
+REVIGUARD_VERSION="0.5.7"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install.log"
 STEP_COUNT=1
@@ -262,6 +262,8 @@ if [[ "$EUID" -eq 0 ]]; then
     echo
     info "Installation wird als Benutzer '${BLD}$NEW_USER${RST}' neu gestartet..."
     echo
+    # Temp-Verzeichnis für den neuen Benutzer lesbar machen (mktemp erstellt mit 700)
+    chmod -R o+rX "$SCRIPT_DIR"
     exec su - "$NEW_USER" -c "bash '$SCRIPT_DIR/install.sh'"
   fi
 
