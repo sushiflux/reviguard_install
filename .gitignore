@@ -65,6 +65,13 @@ ehthumbs.db
 *.cache
 *.tmp
 
+# ── Nicht benötigte Laravel-Standarddateien ───────────────────────
+README.md
+package.json
+vite.config.js
+phpunit.xml
+tests/
+
 # ── Interne Entwickler-Dateien (nicht für Kunden) ─────────────────
 DEVELOPER_DIARY.txt
 DEVELOPER_DIARY.html
