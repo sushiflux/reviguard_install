@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.12"
+REVIGUARD_VERSION="0.5.13"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
@@ -265,6 +265,10 @@ if [[ "$EUID" -eq 0 ]]; then
     echo -e "  ${BLD}Bitte melden Sie sich jetzt als '${NEW_USER}' an und"
     echo -e "  starten Sie die Installation erneut:${RST}"
     echo
+    echo -e "  ${BLD}1)${RST} Benutzer wechseln:"
+    echo -e "     ${DIM}su - ${NEW_USER}${RST}"
+    echo
+    echo -e "  ${BLD}2)${RST} Installation starten:"
     echo -e "  ${CYN}${BLD}  curl -fsSL https://raw.githubusercontent.com/sushiflux/reviguard_install/main/get.sh | bash${RST}"
     echo
     exit 0
