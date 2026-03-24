@@ -867,18 +867,85 @@ case "\${1:-help}" in
     echo ""
     sudo systemctl status reviguard --no-pager
     echo ""
-    docker compose ps
+    docker compose --project-directory "\$INSTALL_DIR" ps
     ;;
   update)
-    echo "ReviGuard wird aktualisiert..."
-    git -C "\$INSTALL_DIR" pull --ff-only
+    GITHUB_USER="sushiflux"
+    GITHUB_REPO="reviguard_install"
+    CURRENT=\$(grep -oP '(?<=APP_VERSION=)[\d.]+' "\$INSTALL_DIR/.env" 2>/dev/null || echo "0.0.0")
+
+    echo "  Aktuelle Version: v\$CURRENT"
+    echo "  Prüfe auf neue Version..."
+
+    API_URL="https://api.github.com/repos/\$GITHUB_USER/\$GITHUB_REPO/releases/latest"
+    LATEST=\$(curl -fsSL "\$API_URL" 2>/dev/null \
+      | grep '"tag_name"' | head -1 \
+      | sed 's/.*"v\([^"]*\)".*/\1/')
+
+    if [[ -z "\$LATEST" ]]; then
+      echo "  Fehler: GitHub-API nicht erreichbar oder kein Release gefunden." >&2
+      exit 1
+    fi
+
+    echo "  Neueste Version:  v\$LATEST"
+
+    if [[ "\$CURRENT" == "\$LATEST" ]]; then
+      echo "  ReviGuard ist bereits aktuell."
+      exit 0
+    fi
+
+    echo "  Update v\$CURRENT → v\$LATEST wird durchgeführt..."
+
+    TMPDIR=\$(mktemp -d)
+    trap "rm -rf \$TMPDIR" EXIT
+
+    ARCHIVE="reviguard-v\${LATEST}.tar.gz"
+    CHECKSUM="reviguard-v\${LATEST}.sha256"
+    BASE_URL="https://github.com/\$GITHUB_USER/\$GITHUB_REPO/releases/download/v\${LATEST}"
+
+    echo "  Lade Archiv herunter..."
+    curl -fsSL "\$BASE_URL/\$ARCHIVE"  -o "\$TMPDIR/\$ARCHIVE"
+    curl -fsSL "\$BASE_URL/\$CHECKSUM" -o "\$TMPDIR/\$CHECKSUM" 2>/dev/null || true
+
+    if [[ -f "\$TMPDIR/\$CHECKSUM" ]]; then
+      echo "  Prüfsumme wird verifiziert..."
+      (cd "\$TMPDIR" && sed "s|reviguard-v.*\.tar\.gz|\$ARCHIVE|" "\$CHECKSUM" | sha256sum -c --status) \
+        || { echo "  Fehler: Prüfsumme stimmt nicht überein!" >&2; exit 1; }
+      echo "  Prüfsumme OK."
+    fi
+
+    echo "  Dateien werden entpackt..."
+    tar -xzf "\$TMPDIR/\$ARCHIVE" -C "\$TMPDIR"
+
+    echo "  Dateien werden eingespielt..."
+    sudo rsync -a \
+      --exclude='.env' \
+      --exclude='vendor/' \
+      --exclude='storage/' \
+      --exclude='bootstrap/cache/' \
+      --exclude='docker-compose.override.yml' \
+      "\$TMPDIR/reviguard/" "\$INSTALL_DIR/"
+
+    sudo chown -R reviguard:reviguard "\$INSTALL_DIR"
+    sudo chmod 755 "\$INSTALL_DIR"
+    sudo chmod 640 "\$INSTALL_DIR/.env"
+
+    # APP_VERSION in .env aktualisieren
+    sudo sed -i "s/APP_VERSION=.*/APP_VERSION=\$LATEST/" "\$INSTALL_DIR/.env"
+
+    echo "  Abhängigkeiten installieren..."
     DK composer install --no-dev --optimize-autoloader --no-interaction --quiet
+
+    echo "  Datenbank-Migrationen..."
     ART migrate --force
+
+    echo "  Caches aktualisieren..."
     ART config:cache
     ART route:cache
     ART view:cache
-    sudo systemctl restart reviguard
-    echo "Update auf \$(grep APP_VERSION .env | cut -d= -f2) abgeschlossen."
+
+    echo ""
+    echo "  Update auf v\$LATEST erfolgreich abgeschlossen."
     ;;
   logs)
     shift
