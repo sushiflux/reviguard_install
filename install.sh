@@ -400,7 +400,8 @@ if ! $IS_UPGRADE; then
     echo
     spinner_start "Dateien werden nach $INSTALL_DIR kopiert..."
     sudo mkdir -p "$INSTALL_DIR"
-    sudo rsync -a --exclude='.env' --exclude='vendor/' \
+    sudo chown "$CURRENT_USER:$CURRENT_USER" "$INSTALL_DIR"
+    rsync -a --exclude='.env' --exclude='vendor/' \
       --exclude='storage/logs/*' --exclude='storage/framework/cache/*' \
       --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' \
       --exclude='bootstrap/cache/*' --exclude='install.log' \
