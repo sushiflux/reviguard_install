@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.11"
+REVIGUARD_VERSION="0.5.12"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
@@ -239,7 +239,7 @@ if [[ "$EUID" -eq 0 ]]; then
   echo -e "  Für eine sichere Installation wird empfohlen, einen"
   echo -e "  normalen Benutzer mit sudo-Rechten zu verwenden."
   echo
-  if ask_yn "Jetzt einen neuen Benutzer anlegen?" "j"; then
+  if ask_yn "Jetzt einen neuen Benutzer anlegen und das Skript neu starten?" "j"; then
     echo
     NEW_USER=$(ask "Benutzername für den neuen Benutzer")
     [[ -n "$NEW_USER" ]] || die "Kein Benutzername eingegeben."
@@ -259,8 +259,15 @@ if [[ "$EUID" -eq 0 ]]; then
       ok "Benutzer '${BLD}$NEW_USER${RST}' hat bereits sudo-Rechte."
     fi
 
-    info "Installation wird als root fortgesetzt."
-    warn "Nach der Installation bitte als '${BLD}$NEW_USER${RST}' anmelden."
+    echo
+    echo -e "  ${GRN}${BLD}Benutzer '${NEW_USER}' ist bereit.${RST}"
+    echo
+    echo -e "  ${BLD}Bitte melden Sie sich jetzt als '${NEW_USER}' an und"
+    echo -e "  starten Sie die Installation erneut:${RST}"
+    echo
+    echo -e "  ${CYN}${BLD}  curl -fsSL https://raw.githubusercontent.com/sushiflux/reviguard_install/main/get.sh | bash${RST}"
+    echo
+    exit 0
   fi
 
   echo
@@ -274,9 +281,13 @@ else
   INSTALL_AS_ROOT=false
   CURRENT_USER="$(whoami)"
   ok "Angemeldet als: ${BLD}$CURRENT_USER${RST}"
+  # sudo-Rechte prüfen
+  if ! groups 2>/dev/null | grep -qE '\bsudo\b|\bwheel\b'; then
+    die "Benutzer '$CURRENT_USER' hat keine sudo-Rechte. Bitte zur sudo-Gruppe hinzufügen:\n  usermod -aG sudo $CURRENT_USER"
+  fi
   if ! sudo -n true 2>/dev/null; then
     info "Bitte sudo-Passwort eingeben:"
-    sudo -v || die "Keine sudo-Berechtigung vorhanden."
+    sudo -v || die "sudo-Passwort falsch oder keine Berechtigung."
   fi
   ok "sudo-Berechtigung bestätigt."
 fi
