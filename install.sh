@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.9"
+REVIGUARD_VERSION="0.5.10"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
@@ -239,7 +239,7 @@ if [[ "$EUID" -eq 0 ]]; then
   echo -e "  Für eine sichere Installation wird empfohlen, einen"
   echo -e "  normalen Benutzer mit sudo-Rechten zu verwenden."
   echo
-  if ask_yn "Jetzt einen neuen Benutzer anlegen und als dieser fortfahren?" "j"; then
+  if ask_yn "Jetzt einen neuen Benutzer anlegen?" "j"; then
     echo
     NEW_USER=$(ask "Benutzername für den neuen Benutzer")
     [[ -n "$NEW_USER" ]] || die "Kein Benutzername eingegeben."
@@ -259,14 +259,8 @@ if [[ "$EUID" -eq 0 ]]; then
       ok "Benutzer '${BLD}$NEW_USER${RST}' hat bereits sudo-Rechte."
     fi
 
-    echo
-    info "Installation wird als Benutzer '${BLD}$NEW_USER${RST}' neu gestartet..."
-    echo
-    # Temp-Verzeichnis für den neuen Benutzer lesbar machen
-    # mktemp erstellt mit 700 — auch das Parent-Verzeichnis muss traversierbar sein
-    chmod o+rX "$(dirname "$SCRIPT_DIR")"
-    chmod -R o+rX "$SCRIPT_DIR"
-    exec su - "$NEW_USER" -c "bash '$SCRIPT_DIR/install.sh'"
+    info "Installation wird als root fortgesetzt."
+    warn "Nach der Installation bitte als '${BLD}$NEW_USER${RST}' anmelden."
   fi
 
   echo
