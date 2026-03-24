@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.13"
+REVIGUARD_VERSION="0.5.14"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
@@ -468,7 +468,7 @@ if ! $IS_UPGRADE; then
     sudo mkdir -p "$INSTALL_DIR"
     sudo chown "$(id -u):$(id -g)" "$INSTALL_DIR"
     sudo chmod 755 "$INSTALL_DIR"
-    rsync -a --exclude='.env' --exclude='vendor/' \
+    sudo rsync -a --exclude='.env' --exclude='vendor/' \
       --exclude='.git/' \
       --exclude='storage/logs/*' --exclude='storage/framework/cache/*' \
       --exclude='storage/framework/sessions/*' --exclude='storage/framework/views/*' \
