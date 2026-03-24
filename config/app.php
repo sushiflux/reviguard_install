@@ -14,7 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'ReviGuard'),
-    'version' => env('APP_VERSION', '0.5.10'),
+    'version' => env('APP_VERSION', '0.5.11'),
 
     /*
     |--------------------------------------------------------------------------

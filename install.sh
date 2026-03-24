@@ -14,7 +14,7 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-REVIGUARD_VERSION="0.5.10"
+REVIGUARD_VERSION="0.5.11"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="/tmp/reviguard-install-$(id -u).log"
 STEP_COUNT=1
@@ -369,7 +369,12 @@ if $NEED_DOCKER || $NEED_COMPOSE; then
   echo -e "  Dieser Benutzer kann Docker ohne 'sudo' verwenden."
   echo
 
-  DOCKER_USER=$(ask "Benutzername" "${SUDO_USER:-$CURRENT_USER}")
+  # Vorschlag: angelegter Benutzer > SUDO_USER > aktueller Benutzer (nicht root)
+  DOCKER_USER_DEFAULT="${NEW_USER:-${SUDO_USER:-}}"
+  if [[ -z "$DOCKER_USER_DEFAULT" || "$DOCKER_USER_DEFAULT" == "root" ]]; then
+    DOCKER_USER_DEFAULT=""
+  fi
+  DOCKER_USER=$(ask "Benutzername" "$DOCKER_USER_DEFAULT")
   id "$DOCKER_USER" &>/dev/null || die "Benutzer '$DOCKER_USER' existiert nicht."
 
   echo
