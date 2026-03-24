@@ -13,7 +13,8 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'Laravel'),
+    'name' => env('APP_NAME', 'ReviGuard'),
+    'version' => env('APP_VERSION', '0.5.1'),
 
     /*
     |--------------------------------------------------------------------------

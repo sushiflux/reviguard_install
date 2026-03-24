@@ -11,6 +11,7 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RolesSeeder::class,
             SystemAdminSeeder::class,
+            VersionChangelogSeeder::class,
         ]);
     }
 }
