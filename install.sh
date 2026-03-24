@@ -763,8 +763,9 @@ fi
 
 spinner_start "Dateiberechtigungen setzen..."
 DK exec -u root reviguard_php \
-  chown -R www-data:www-data storage bootstrap/cache >> "$LOG_FILE" 2>&1 || \
-DK exec reviguard_php chmod -R 775 storage bootstrap/cache >> "$LOG_FILE" 2>&1
+  chown -R appuser:appgroup storage bootstrap/cache >> "$LOG_FILE" 2>&1
+DK exec -u root reviguard_php \
+  chmod -R 775 storage bootstrap/cache >> "$LOG_FILE" 2>&1
 spinner_stop; ok "Dateiberechtigungen gesetzt."
 
 spinner_start "Datenbank-Migrationen ausführen..."
