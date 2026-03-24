@@ -232,20 +232,35 @@ if [[ "$EUID" -eq 0 ]]; then
   echo -e "  Für eine sichere Installation wird empfohlen, einen"
   echo -e "  normalen Benutzer mit sudo-Rechten zu verwenden."
   echo
-  echo -e "  ${BLD}Neuen Benutzer anlegen (Befehle als root ausführen):${RST}"
-  echo
-  echo -e "  ${CYN}1)${RST} Benutzer anlegen und sudo-Rechte vergeben:"
-  echo -e "     ${DIM}adduser BENUTZERNAME${RST}"
-  echo -e "     ${DIM}usermod -aG sudo BENUTZERNAME${RST}"
-  echo
-  echo -e "  ${CYN}2)${RST} Als neuen Benutzer neu anmelden:"
-  echo -e "     ${DIM}su - BENUTZERNAME${RST}"
-  echo
-  echo -e "  ${CYN}3)${RST} Installation erneut starten:"
-  echo -e "     ${DIM}curl -fsSL https://raw.githubusercontent.com/sushiflux/reviguard_install/main/get.sh | bash${RST}"
+  if ask_yn "Jetzt einen neuen Benutzer anlegen und als dieser fortfahren?" "j"; then
+    echo
+    NEW_USER=$(ask "Benutzername für den neuen Benutzer")
+    [[ -n "$NEW_USER" ]] || die "Kein Benutzername eingegeben."
+
+    if id "$NEW_USER" &>/dev/null 2>&1; then
+      ok "Benutzer '${BLD}$NEW_USER${RST}' existiert bereits."
+    else
+      info "Benutzer '${BLD}$NEW_USER${RST}' wird angelegt..."
+      adduser --gecos "" "$NEW_USER" || die "Benutzer konnte nicht angelegt werden."
+      ok "Benutzer '${BLD}$NEW_USER${RST}' angelegt."
+    fi
+
+    if ! groups "$NEW_USER" | grep -q '\bsudo\b'; then
+      usermod -aG sudo "$NEW_USER"
+      ok "Benutzer '${BLD}$NEW_USER${RST}' zur sudo-Gruppe hinzugefügt."
+    else
+      ok "Benutzer '${BLD}$NEW_USER${RST}' hat bereits sudo-Rechte."
+    fi
+
+    echo
+    info "Installation wird als Benutzer '${BLD}$NEW_USER${RST}' neu gestartet..."
+    echo
+    exec su - "$NEW_USER" -c "bash '$SCRIPT_DIR/install.sh'"
+  fi
+
   echo
   ask_yn "Trotzdem als root fortfahren?" "n" \
-    || die "Installation abgebrochen. Bitte Benutzer anlegen und neu starten."
+    || die "Installation abgebrochen."
   INSTALL_AS_ROOT=true
   CURRENT_USER="root"
 else
