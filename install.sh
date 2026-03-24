@@ -259,6 +259,12 @@ if [[ "$EUID" -eq 0 ]]; then
   fi
 
   echo
+  echo -e "  ${RED}${BLD}⚠  Sicherheitshinweis${RST}"
+  echo -e "  Die Installation als root stellt ein Sicherheitsrisiko dar."
+  echo -e "  Ein kompromittierter Prozess hätte vollen Zugriff auf den Server."
+  echo -e "  ${YLW}Empfehlung nach der Installation:${RST}"
+  echo -e "  ${DIM}passwd -l root   ${RST}${DIM}← Root-Login deaktivieren${RST}"
+  echo
   ask_yn "Trotzdem als root fortfahren?" "n" \
     || die "Installation abgebrochen."
   INSTALL_AS_ROOT=true
